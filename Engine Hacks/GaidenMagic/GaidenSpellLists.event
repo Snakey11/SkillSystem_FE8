@@ -1,0 +1,10 @@
+
+ALIGN 4
+EirikaSpellList:
+BYTE 5 Fire
+BYTE 10 Thunder
+BYTE 15 Elfire
+BYTE 20 Bolting
+BYTE 81 Fimbulvetr
+BYTE 85 Excalibur
+BYTE 0 0

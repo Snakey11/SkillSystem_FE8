@@ -1,0 +1,59 @@
+
+#ifdef GAIDEN_MAGIC
+	
+	#include "GaidenMagic.lyn.event" // Compiled C.
+	
+	#include "SpellSystemASM.lyn.event" // Stuff not really suitable for C conversion.
+	
+	#include "GaidenSpellLists.event" // Go here to define per-character spell lists.
+	
+	#include "GaidenSpellTable.event" // Go here to define pointers to spell lists per character.
+	
+	ALIGN 4
+	gGaidenMagicUMErrorText:
+	SHORT GaidenMagicUMErrorText
+	gGaidenMagicSpellMenuErrorText:
+	SHORT GaidenMagicSpellMenuErrorText
+	
+	PUSH
+	ORG $2A774
+	POIN SetUpBattleWeaponDataSwitchRepoint
+	POP
+	
+	ALIGN 4
+	SetUpBattleWeaponDataSwitchRepoint:
+	POIN 0x0802A79C // Item is in inventory.
+	POIN 0x0802A79C
+	POIN 0x0802A79C
+	POIN 0x0802A79C
+	POIN 0x0802A79C
+	POIN 0x0802A7B0 // Item just added.
+	POIN 0x0802A7CC // Arena attacker.
+	POIN 0x0802A7EC // Arena defender.
+	POIN 0x0802A80C // Ballista.
+	POIN SetUpBattleWeaponDataForSpellMenu
+	
+	// Temp until I get these functions written...
+	
+	#define MagicMenuCommand(optionNumber) "WORD $080D7CB8; SHORT 0; SHORT 0; BYTE 0 optionNumber 0 0; POIN (SpellUsability|1); POIN (SpellDrawingRoutine|1); POIN (SpellEffectRoutine|1); WORD 0; POIN (SpellOnHover|1); POIN (SpellOnUnhover|1)"
+	#define MagicMenuCommandEnd "WORD 0 0 0 0 0 0 0 0 0"
+
+	ALIGN 4
+	SpellSelectMenuDefs:
+	BYTE $01 $01 $0E $00
+	WORD $0
+	POIN MagicMenuCommandDefs
+	WORD $0 $0 $0
+	POIN MagicMenuBPress|1
+	WORD $0804F521
+	WORD $08024589
+
+	MagicMenuCommandDefs:
+		MagicMenuCommand($49)
+		MagicMenuCommand($4A)
+		MagicMenuCommand($4B)
+		MagicMenuCommand($4C)
+		MagicMenuCommand($4D)
+	MagicMenuCommandEnd
+
+#endif // GAIDEN_MAGIC

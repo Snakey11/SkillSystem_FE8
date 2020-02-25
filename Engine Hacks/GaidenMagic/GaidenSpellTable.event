@@ -1,0 +1,8 @@
+
+ALIGN 4
+SpellListTable:
+ORG CURRENTOFFSET + 4 * 0xFF // Allocate 0xFF entries for character spell lists.
+
+#define GaidenList(character,pointer) "PUSH ; ORG SpellListTable + character * 4 ; POIN pointer ; POP"
+
+GaidenList(Eirika,EirikaSpellList)

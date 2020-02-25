@@ -49,7 +49,7 @@ int NewGetUnitEquippedWeaponSlot(Unit* unit) // Autohook to 0x08016B5C.
 u32 NewGetUnitRangeMask(Unit* unit, int slot) // Autohook to 0x080171E8. It seems slot is the inventory slot we're looking at. -1 is undefined (like on the map).
 // This function may be quite different from how it was expressed in Gaiden Magic v1.0, but I think this should work fine.
 {
-	if ( slot < 0 )
+	if ( slot < 0 || slot > 5)
 	{
 		// No inventory slot defined. Loop through the unit's inventory.
 		u32 mask = 0;
@@ -57,7 +57,7 @@ u32 NewGetUnitRangeMask(Unit* unit, int slot) // Autohook to 0x080171E8. It seem
 		{
 			u8* spells = SpellsGetter(unit);
 			// Orr the range mask with all usable spells.
-			for ( int i = 0 ; spells ; i++ )
+			for ( int i = 0 ; spells[i] ; i++ )
 			{
 				if ( CanUnitUseWeapon(unit,spells[i]) )
 				{
@@ -81,7 +81,7 @@ u32 NewGetUnitRangeMask(Unit* unit, int slot) // Autohook to 0x080171E8. It seem
 		{
 			u8* spells = SpellsGetter(unit);
 			int spell = spells[SelectedSpell];
-			return ( spell != 0 ? GetWeaponRangeMask(spell) : GetWeaponRangeMask(unit->items[slot]) );
+			return ( spell ? GetWeaponRangeMask(spell) : GetWeaponRangeMask(unit->items[slot]) );
 		}
 		else
 		{

@@ -2,13 +2,13 @@
 // This follows those weird menu usability return values. 1 = usable, 2 = grey, 3 = unsuable.
 int SpellUsability(const struct MenuCommandDefinition* menuEntry, int index, int idk)
 {
-	int spell = SpellsGetter(gActiveUnit)[index];
-	if ( spell ) // This option should be usable if the nth spell exists.
-	{
-		// Now, let's grey out the spell if we don't have the HP to cast it.
-		return ( HasSufficientHP(gActiveUnit,spell|0xFF00) ? 1 : 2 );
-	}
-	else { return 3; }
+	int spell = SpellsGetter(gActiveUnit)[index]|0xFF00;
+	if ( !spell ) { return 3; }
+	// This option should be usable if the nth spell exists.
+	if ( !CanCastSpellNow(gActiveUnit,spell) ) { return 3; }
+	// Now, let's grey out the spell if we don't have the HP to cast it.
+	return ( HasSufficientHP(gActiveUnit,spell) ? 1 : 2 );
+	
 }
 
 int SpellDrawingRoutine(MenuProc* menu, MenuCommandProc* menuCommand)
@@ -40,6 +40,7 @@ int SpellEffectRoutine(MenuProc* proc, MenuCommandProc* commandProc)
 	{
 		// Option is greyed out. Error R-text!
 		MenuCallHelpBox(proc,gGaidenMagicSpellMenuErrorText);
+		return 0x08;
 	}
 	else
 	{

@@ -96,3 +96,16 @@ static int HasSufficientHP(Unit* unit, int spell)
 	// WeaponEXP granted in item data is also the HP cost of the spell.
 	return unit->curHP > GetItemData(spell)->weaponExp;
 }
+
+// This function is going to check if we should be able to use this spell NOW. If this is an attack spell, are we in range, etc.
+// This does NOT check for HP cost.
+static int CanCastSpellNow(Unit* unit, int spell)
+{
+	// This function should do a bit of miscellaneous conditional stuff.
+		if ( !CanUnitUseWeaponNow(gActiveUnit,spell) ) { return 0; }
+		
+		// Next, we can initialize a "dummy" target list and check if it's empty. If not, then there's a valid target we can attack.
+		MakeTargetListForWeapon(gActiveUnit,spell);
+		if ( GetTargetListSize() == 0 ) { return 0; }
+		return 1;
+}

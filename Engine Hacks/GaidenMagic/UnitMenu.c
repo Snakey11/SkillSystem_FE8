@@ -8,24 +8,9 @@ int GaidenMagicUMUsability(void) // It's kinda weird that usability is void, but
 	u8* spellList = SpellsGetter(gActiveUnit); // This is a 0-terminated list of spells this character has learned.
 	u8* validList = gGenericBuffer; // Let's build a list of valid spells.
 	for ( int i = 0 ; spellList[i] ; i++ )
-	{
-		int spell = spellList[i];
-		// There was a check here related to is the unit moving, but I think that was unnecessary?
-		
-		// First, let's check to see they have the weapon rank.
-		if ( gActiveUnit->ranks[gItemData[spell].weaponType] < gItemData[spell].weaponRank ) { continue; }
-		
-		// Next, let's ensure that this spell is marked as a "weapon."
-		if ( !(gItemData[spell].attributes & IA_WEAPON) ) { continue; }
-		
-		// This function should do a bit of miscellaneous conditional stuff.
-		if ( !CanUnitUseWeaponNow(gActiveUnit,spell) ) { continue; }
-		
-		// Next, we can initialize a "dummy" target list and check if it's empty. If not, then there's a valid target we can attack.
-		MakeTargetListForWeapon(gActiveUnit,spell);
-		if ( GetTargetListSize() == 0 ) { continue; }
-		
-		*validList = spell;
+	{	
+		if ( !CanCastSpellNow(gActiveUnit,spellList[i]|0xFF00) ) { continue; }
+		*validList = spellList[i];
 		validList++;
 	}
 	*validList = 0;

@@ -25,6 +25,9 @@
 // This information can be edited in the "Personal Data Editor.csv" file.
 #define ENABLE_PERSONAL_INFO
 
+// If uncommented, Gaiden-style magic 2.0 will be implemented.
+#define GAIDEN_MAGIC
+
 // =================================
 // = SKILL BEHAVIOUR CONFIGURATION =
 // =================================

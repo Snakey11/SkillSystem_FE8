@@ -39,6 +39,8 @@ int NewGetUnitEquippedWeaponSlot(Unit* unit);
 u32 NewGetUnitRangeMask(Unit* unit, int slot);
 static int HasSufficientHP(Unit* unit, int spell);
 static int CanCastSpellNow(Unit* unit, int spell);
+static int GetUnitRangeMaskForSpells(Unit* unit);
+static int GetNthUsableSpell(Unit* unit, int n);
 
 int SpellUsability(const struct MenuCommandDefinition* menuEntry, int index, int idk);
 int SpellDrawingRoutine(MenuProc* menu, MenuCommandProc* menuCommand);

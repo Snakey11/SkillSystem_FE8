@@ -51,11 +51,15 @@ int SpellEffectRoutine(MenuProc* proc, MenuCommandProc* commandProc)
 
 int SpellOnHover(MenuProc* proc)
 {
+	BmMapFill(gMapMovement,-1);
+	BmMapFill(gMapRange,0);
+	FillRangeMapByRangeMask(gActiveUnit,GetWeaponRangeMask(GetNthUsableSpell(gActiveUnit,proc->commandIndex)));
+	DisplayMoveRangeGraphics(2);
 	return 0;
 }
 
-
 int SpellOnUnhover(MenuProc* proc)
 {
+	HideMoveRangeGraphics();
 	return 0;
 }

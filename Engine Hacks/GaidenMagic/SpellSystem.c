@@ -55,16 +55,8 @@ u32 NewGetUnitRangeMask(Unit* unit, int slot) // Autohook to 0x080171E8. It seem
 		u32 mask = 0;
 		if ( UsingSpellMenu )
 		{
-			u8* spells = SpellsGetter(unit);
-			// Orr the range mask with all usable spells.
-			for ( int i = 0 ; spells[i] ; i++ )
-			{
-				if ( CanUnitUseWeapon(unit,spells[i]) )
-				{
-					mask |= GetWeaponRangeMask(spells[i]);
-				}
-			}
-		}			
+			mask |= GetUnitRangeMaskForSpells(unit);
+		}
 		for ( int i = 0 ; i < 5 ; i++ )
 		{
 			if ( CanUnitUseWeapon(unit,unit->items[i]) )
@@ -108,4 +100,36 @@ static int CanCastSpellNow(Unit* unit, int spell)
 		MakeTargetListForWeapon(gActiveUnit,spell);
 		if ( GetTargetListSize() == 0 ) { return 0; }
 		return 1;
+}
+
+static int GetUnitRangeMaskForSpells(Unit* unit)
+{
+	u32 mask = 0;
+	u8* spells = SpellsGetter(unit);
+	// Orr the range mask with all usable spells.
+	for ( int i = 0 ; spells[i] ; i++ )
+	{
+		if ( CanUnitUseWeapon(unit,spells[i]) && HasSufficientHP(unit,spells[i]) )
+		{
+			mask |= GetWeaponRangeMask(spells[i]);
+		}
+	}
+	return mask;
+}
+
+// This should loop through spells that are usable NOW. Basically, a spell should be considered usable if it appears in the spell menu.
+// Don't check for HP because those are greyed out with error R-text.
+static int GetNthUsableSpell(Unit* unit, int n)
+{
+	u8* spells = SpellsGetter(unit);
+	int k = -1;
+	for ( int i = 0 ; spells[i] ; i++ )
+	{
+		if ( CanCastSpellNow(unit,spells[i]) )
+		{
+			k++;
+			if ( k == n ) { return spells[i]; }
+		}
+	}
+	return -1;
 }

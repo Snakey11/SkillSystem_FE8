@@ -52,7 +52,7 @@ int GaidenMagicUMHover(MenuProc* proc)
 	UsingSpellMenu = 1;
 	BmMapFill(gMapMovement,-1);
 	BmMapFill(gMapRange,0);
-	FillRangeMapByRangeMask(gActiveUnit,GetUnitRangeMask(gActiveUnit,-1));
+	FillRangeMapByRangeMask(gActiveUnit,GetUnitRangeMaskForSpells(gActiveUnit));
 	DisplayMoveRangeGraphics(3);
 	return 0;
 }

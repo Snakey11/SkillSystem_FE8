@@ -20,10 +20,6 @@ CFLAGS := $(ARCH) -Wall -Os -mtune=arm7tdmi -mlong-calls
 %.s: %.c *.c
 	$(CC) $(CFLAGS) -S $< -o $@ -fverbose-asm
 
-# C to OBJ rule
-%.o: %.c *.c
-	$(CC) $(CFLAGS) -c $< -o $@
-	
 # OBJ to EVENT rule
 %.lyn.event: %.o *.c
 	$(MAKE) $(dir $<)Definitions.o

@@ -27,7 +27,7 @@ int GaidenMagicUMUsability(void) // It's kinda weird that usability is void, but
 
 int GaidenMagicUMEffect(MenuProc* proc, MenuCommandProc* commandProc)
 {
-	if ( commandProc->availability == 2 )
+	if ( proc && commandProc->availability == 2 )
 	{
 		// Option is greyed out. Error R-text!
 		MenuCallHelpBox(proc,gGaidenMagicUMErrorText);
@@ -37,6 +37,7 @@ int GaidenMagicUMEffect(MenuProc* proc, MenuCommandProc* commandProc)
 	{
 		_ResetIconGraphics();
 		UsingSpellMenu = 1;
+		SelectedSpell = SpellsGetter(gActiveUnit)[0];
 		LoadIconPalettes(4);
 		MenuProc* menu = StartMenu(&SpellSelectMenuDefs);
 		// We're going to load a face now. I'm going to leave out the hardcoded check for the phantom (for now at least).
@@ -49,7 +50,6 @@ int GaidenMagicUMEffect(MenuProc* proc, MenuCommandProc* commandProc)
 
 int GaidenMagicUMHover(MenuProc* proc)
 {
-	UsingSpellMenu = 1;
 	BmMapFill(gMapMovement,-1);
 	BmMapFill(gMapRange,0);
 	FillRangeMapByRangeMask(gActiveUnit,GetUnitRangeMaskForSpells(gActiveUnit));
@@ -59,7 +59,6 @@ int GaidenMagicUMHover(MenuProc* proc)
 
 int GaidenMagicUMUnhover(MenuProc* proc)
 {
-	UsingSpellMenu = 0;
 	HideMoveRangeGraphics();
 	return 0;
 }

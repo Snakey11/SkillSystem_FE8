@@ -14,10 +14,15 @@
 	SHORT GaidenMagicUMErrorText
 	gGaidenMagicSpellMenuErrorText:
 	SHORT GaidenMagicSpellMenuErrorText
+	gGaidenMagicHPCostText:
+	SHORT GaidenMagicHPCostText
 	
 	PUSH
 	ORG $2A774
 	POIN SetUpBattleWeaponDataSwitchRepoint
+	
+	ORG $59B654
+	POIN NewExitBattleForecast|1
 	POP
 	
 	ALIGN 4

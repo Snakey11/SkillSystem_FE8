@@ -44,9 +44,13 @@ int SpellEffectRoutine(MenuProc* proc, MenuCommandProc* commandProc)
 	}
 	else
 	{
-		// todo: Actual effect.
+		// Actual effect. Call the target selection menu and shit.
+		gActionData.itemSlotIndex = 0;
+		ClearBG0BG1();
+		MakeTargetListForWeapon(gActiveUnit,SelectedSpell|0xFF00);
+		StartTargetSelection(&SpellTargetSelection);
+		return 0x27;
 	}
-	return 0x17;
 }
 
 int SpellOnHover(MenuProc* proc)

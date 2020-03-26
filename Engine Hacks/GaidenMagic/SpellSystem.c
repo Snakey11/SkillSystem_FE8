@@ -24,10 +24,9 @@ u8* SpellsGetter(Unit* unit) // Returns a pointer to a list of spells this chara
 	return SpellsBuffer;
 }
 
-
 int NewGetUnitEquippedWeapon(Unit* unit) // Autohook to 0x08016B28.
 {
-	if ( CanUnitUseWeapon(unit,SelectedSpell) ) { return SelectedSpell; }
+	if ( unit == gActiveUnit && UsingSpellMenu && CanUnitUseWeapon(unit,SelectedSpell) ) { return SelectedSpell; }
 	// Vanilla behavior. Loop through inventory to see if any items are currently usable as weapons.
 	for ( int i = 0 ; i < 5 ; i++ )
 	{
@@ -36,7 +35,7 @@ int NewGetUnitEquippedWeapon(Unit* unit) // Autohook to 0x08016B28.
 	return 0;
 }
 
-int NewGetUnitEquippedWeaponSlot(Unit* unit) // Autohook to 0x08016B5C.
+int NewGetUnitEquippedWeaponSlot(Unit* unit) // Autohook to 0x08016B58.
 {
 	if ( CanUnitUseWeapon(unit,SelectedSpell) ) { return 9; }
 	for ( int i = 0 ; i < 5 ; i++ )

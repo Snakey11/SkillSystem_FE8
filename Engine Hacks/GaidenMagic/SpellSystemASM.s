@@ -67,16 +67,16 @@ mov r15, r0
 SetUpBattleWeaponDataForSpellMenu: @ Called by entry 9 in SetUpBattleWeaponDataSwitchRepoint.
 mov r4, r5
 add r4, #0x51
-mov r0, #0xFF
-strb r0, [ r4, #0x0 ]
+mov r0, #0x09
+strb r0, [ r4 ]
 ldr r1, =SelectedSpell
-ldrb r0, [ r1, #0x0 ]
+ldrb r0, [ r1 ]
 mov r2, r5
 add r2, r2, #0x48
 mov r1, #0x1
-strh r0, [ r2, #0x0 ]
+strh r0, [ r2 ]
 mov r0, r9
-strb r1, [ r0, #0x0 ]
+strb r1, [ r0 ]
 mov r8, r4
 mov r4, r2
 ldr r1, =#0x802A84B

@@ -56,9 +56,48 @@ int SpellEffectRoutine(MenuProc* proc, MenuCommandProc* commandProc)
 
 int SpellOnHover(MenuProc* proc)
 {
+	int spell = GetNthUsableSpell(gActiveUnit,proc->commandIndex);
+	SelectedSpell = spell;
+	
+	//UpdateMenuItemPanel(proc); // We're gonna rewrite and inline this instead.
+	MenuItemPanelProc* menuItemPanel = (MenuItemPanelProc*)ProcFind(&gProc_MenuItemPanel);
+	TextHandle* textHandle = &menuItemPanel->textHandle;
+	TextHandle* textHandle2 = &menuItemPanel->textHandle2;
+	TextHandle* textHandle3 = &menuItemPanel->textHandle3;
+	int x = menuItemPanel->x;
+	int y = menuItemPanel->y;
+	
+	Text_Clear(&menuItemPanel->textHandle);
+	Text_Clear(&menuItemPanel->textHandle2);
+	Text_Clear(&menuItemPanel->textHandle3);
+	MakeUIWindowTileMap_BG0BG1(x,y,14,8,0);
+	BattleGenerateUiStats(gActiveUnit,9); // 9 is using a Gaiden spell.
+	
+	Text_InsertString(textHandle,0x02,0,GetStringFromIndex(0x4F1)); // Affin.
+	Text_InsertString(textHandle,0x32,0,GetStringFromIndex(gGaidenMagicHPCostText)); // HP Cost.
+	Text_InsertString(textHandle2,0x02,0,GetStringFromIndex(0x4F3)); // Atk.
+	Text_InsertString(textHandle3,0x02,0,GetStringFromIndex(0x4F4)); // Hit.
+	Text_InsertString(textHandle2,0x32,0,GetStringFromIndex(0x501)); // Crit.
+	Text_InsertString(textHandle3,0x32,0,GetStringFromIndex(0x4F5)); // Avoid.
+	
+	int CostColor = 2;
+	if ( !HasSufficientHP(gActiveUnit,spell) ) { CostColor = 1; }
+	Text_InsertNumberOr2Dashes(textHandle,0x54,CostColor,GetItemAwardedExp(spell));
+	Text_InsertNumberOr2Dashes(textHandle2,0x24,2,gBattleActor.battleAttack);
+	Text_InsertNumberOr2Dashes(textHandle3,0x24,2,gBattleActor.battleHitRate);
+	Text_InsertNumberOr2Dashes(textHandle2,0x54,2,gBattleActor.battleCritRate);
+	Text_InsertNumberOr2Dashes(textHandle3,0x54,2,gBattleActor.battleAvoidRate);
+	
+	Text_Display(textHandle,&gBg0MapBuffer[((y+1)<<5)+1+x]);
+	Text_Display(textHandle2,&gBg0MapBuffer[((y+3)<<5)+1+x]);
+	Text_Display(textHandle3,&gBg0MapBuffer[((y+5)<<5)+1+x]);
+	
+	//u16* bg0buffer = GetBgMapBuffer(0) + x + (y << 5);
+	DrawIcon(GetBgMapBuffer(0) + x + (y << 5)+0x25,GetItemType(spell)+0x70,menuItemPanel->oam2base<<0xC);
+	// 0x0202BE6A
 	BmMapFill(gMapMovement,-1);
 	BmMapFill(gMapRange,0);
-	FillRangeMapByRangeMask(gActiveUnit,GetWeaponRangeMask(GetNthUsableSpell(gActiveUnit,proc->commandIndex)));
+	FillRangeMapByRangeMask(gActiveUnit,GetWeaponRangeMask(spell));
 	DisplayMoveRangeGraphics(2);
 	return 0;
 }

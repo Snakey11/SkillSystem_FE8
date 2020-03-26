@@ -107,3 +107,41 @@ int SpellOnUnhover(MenuProc* proc)
 	HideMoveRangeGraphics();
 	return 0;
 }
+
+void NewMenuRText(MenuProc* menuProc, MenuCommandProc* commandProc) // Autohook to 0x08024588. Change the RText if we're using the magic menu.
+{
+	int xTile = commandProc->xDrawTile * 8;
+	int yTile = commandProc->yDrawTile * 8;
+	if ( UsingSpellMenu )
+	{
+		// Get RText for the spell menu instead.
+		DrawItemRText(xTile,yTile,GetNthUsableSpell(gActiveUnit,commandProc->commandDefinitionIndex));
+	}
+	else
+	{
+		// Vanilla behavior.
+		if ( commandProc->commandDefinitionIndex <= 4 )
+		{
+			DrawItemRText(xTile,yTile,gActiveUnit->items[commandProc->commandDefinitionIndex]);
+		}
+		else
+		{
+			DrawItemRText(xTile,yTile,*((u16*)&gGameState+0x16)); // Probably related to special cases like ballistae?
+		}
+	}
+}
+
+void NewExitBattleForecast(Proc* proc)
+{
+	if ( SelectedSpell )
+	{
+		// They were using the magic menu. Return there.
+		GaidenMagicUMEffect(NULL,NULL); // The only thing the UM effect uses the procs for is error R-text which shouldn't be possible if we've exited the forecast.
+	}
+	else
+	{
+		// They were not using the magic menu. Return to regular attack.
+		AttackUMEffect(NULL,NULL);
+	}
+	SelectedSpell = 0; // Regardless of use case, ensure that this is 0.
+}

@@ -31,6 +31,7 @@ int MagicMenuBPress(void)
 	StartMenu_AndDoSomethingCommands(&gMenu_UnitMenu,gGameState._unk1C.x - gGameState.cameraRealPos.x,1,16);
 	HideMoveRangeGraphics();
 	SelectedSpell = 0;
+	UsingSpellMenu = 0;
 	return 0x3B;
 }
 

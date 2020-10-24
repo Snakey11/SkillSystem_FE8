@@ -88,10 +88,13 @@ by having this unit arrive.[X]
 ## Mov_Text_ID
 Mov[X]
 
-## UM_GaidenBattleMagic
+## UM_GaidenBlackMagic
  [M_B][M_l][M_a][M_c][M_k][M_ShortSpace][M_m][M_a][M_g][M_i][M_c][X]
 
-## UM_GaidenBattleMagicDesc
+## UM_GaidenWhiteMagic
+ [M_W][M_h][M_i][M_t][M_e][M_ShortSpace][M_m][M_a][M_g][M_i][M_c][X]
+
+## UM_GaidenMagicDesc
 Spend HP to cast spells[NL]
 this unit has learned.[X]
 

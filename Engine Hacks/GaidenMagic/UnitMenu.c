@@ -3,9 +3,18 @@
 	Return 1 if there is any spell that is usable with enough HP to cast it with a valid target.
 	Return 2 if there is at least 1 usable spell, but there isn't enough HP to cast any usable spells.
 	Return 3 if there are no spells with valid targets. */
-int GaidenMagicUMUsability(void) // It's kinda weird that usability is void, but the other UM functions get the menu proc passed in...
+int GaidenBlackMagicUMUsability(void) // It's kinda weird that usability is void, but the other UM functions get the menu proc passed in...
 {
-	u8* spellList = SpellsGetter(gActiveUnit); // This is a 0-terminated list of spells this character has learned.
+	return GaidenMagicUMUsabilityExt(SpellsGetter(gActiveUnit,BLACK_MAGIC)); // This is a 0-terminated list of spells this character has learned.
+}
+
+int GaidenWhiteMagicUMUsability(void)
+{
+	return GaidenMagicUMUsabilityExt(SpellsGetter(gActiveUnit,WHITE_MAGIC));
+}
+
+static int GaidenMagicUMUsabilityExt(u8* spellList)
+{
 	u8* validList = gGenericBuffer; // Let's build a list of valid spells.
 	for ( int i = 0 ; spellList[i] ; i++ )
 	{	
@@ -25,7 +34,19 @@ int GaidenMagicUMUsability(void) // It's kinda weird that usability is void, but
 	return 2; // There were valid spells, but we don't have enough HP to cast any of them. Return greyed out.
 }
 
-int GaidenMagicUMEffect(MenuProc* proc, MenuCommandProc* commandProc)
+int GaidenBlackMagicUMEffect(MenuProc* proc, MenuCommandProc* commandProc)
+{
+	UsingSpellMenu = BLACK_MAGIC;
+	return GaidenMagicUMEffectExt(SpellsGetter(gActiveUnit,BLACK_MAGIC),proc,commandProc);
+}
+
+int GaidenWhiteMagicUMEffect(MenuProc* proc, MenuCommandProc* commandProc)
+{
+	UsingSpellMenu = WHITE_MAGIC;
+	return GaidenMagicUMEffectExt(SpellsGetter(gActiveUnit,WHITE_MAGIC),proc,commandProc);
+}
+
+int GaidenMagicUMEffectExt(u8* spellsList, MenuProc* proc, MenuCommandProc* commandProc)
 {
 	if ( proc && commandProc->availability == 2 )
 	{
@@ -36,8 +57,7 @@ int GaidenMagicUMEffect(MenuProc* proc, MenuCommandProc* commandProc)
 	else
 	{
 		_ResetIconGraphics();
-		UsingSpellMenu = 1;
-		SelectedSpell = SpellsGetter(gActiveUnit)[0];
+		SelectedSpell = spellsList[0];
 		LoadIconPalettes(4);
 		MenuProc* menu = StartMenu(&SpellSelectMenuDefs);
 		// We're going to load a face now. I'm going to leave out the hardcoded check for the phantom (for now at least).
@@ -52,7 +72,8 @@ int GaidenMagicUMHover(MenuProc* proc)
 {
 	BmMapFill(gMapMovement,-1);
 	BmMapFill(gMapRange,0);
-	FillRangeMapByRangeMask(gActiveUnit,GetUnitRangeMaskForSpells(gActiveUnit));
+	gAll_Weapons_One_Square(gActiveUnit,9);
+	//FillRangeMapByRangeMask(gActiveUnit,GetUnitRangeMaskForSpells(gActiveUnit));
 	DisplayMoveRangeGraphics(3);
 	return 0;
 }

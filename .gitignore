@@ -9,6 +9,9 @@ Desktop.ini
 $RECYCLE.BIN/
 
 */OldGaidenMagic
+SkillsTest.png
+*.sym
+*/sym
 
 # Windows Installer files
 *.cab

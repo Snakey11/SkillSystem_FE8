@@ -2,21 +2,20 @@
 // This follows those weird menu usability return values. 1 = usable, 2 = grey, 3 = unsuable.
 int SpellUsability(const struct MenuCommandDefinition* menuEntry, int index, int idk)
 {
-	int spell = SpellsGetter(gActiveUnit)[index]|0xFF00;
+	int spell = SpellsGetter(gActiveUnit,UsingSpellMenu)[index]|0xFF00;
 	if ( !spell ) { return 3; }
 	// This option should be usable if the nth spell exists.
 	if ( !CanCastSpellNow(gActiveUnit,spell) ) { return 3; }
 	// Now, let's grey out the spell if we don't have the HP to cast it.
 	return ( HasSufficientHP(gActiveUnit,spell) ? 1 : 2 );
-	
 }
 
 int SpellDrawingRoutine(MenuProc* menu, MenuCommandProc* menuCommand)
 {
 	// extern void DrawItemMenuCommand(TextHandle* textHandle, u16 item, int canUse, u16* buffer);
-	int spell = SpellsGetter(gActiveUnit)[menuCommand->commandDefinitionIndex] | 0xFF00; // Max uses.
+	int spell = SpellsGetter(gActiveUnit,UsingSpellMenu)[menuCommand->commandDefinitionIndex] | 0xFF00; // Max uses.
 	// At this point, the spell should be guranteed to exist. Let's check to see if we have the HP to cast the spell (and the weapon rank).
-	int canUse = CanUnitUseWeapon(gActiveUnit,spell) && HasSufficientHP(gActiveUnit,spell);
+	int canUse = CanCastSpell(gActiveUnit,spell) && HasSufficientHP(gActiveUnit,spell);
 	DrawItemMenuCommand(&menuCommand->text,spell,canUse,&gBg0MapBuffer[menuCommand->yDrawTile * 32 + menuCommand->xDrawTile]);
 	EnableBgSyncByMask(1);
 	return 0;
@@ -48,7 +47,8 @@ int SpellEffectRoutine(MenuProc* proc, MenuCommandProc* commandProc)
 		// Actual effect. Call the target selection menu and shit.
 		gActionData.itemSlotIndex = 0;
 		ClearBG0BG1();
-		MakeTargetListForWeapon(gActiveUnit,SelectedSpell|0xFF00);
+		//MakeTargetListForWeapon(gActiveUnit,SelectedSpell|0xFF00);
+		SetupTargetSelectionForGenericStaff(gActiveUnit,SelectedSpell|0xFF00);
 		StartTargetSelection(&SpellTargetSelection);
 		return 0x27;
 	}
@@ -56,7 +56,7 @@ int SpellEffectRoutine(MenuProc* proc, MenuCommandProc* commandProc)
 
 int SpellOnHover(MenuProc* proc)
 {
-	int spell = GetNthUsableSpell(gActiveUnit,proc->commandIndex);
+	int spell = SpellsGetter(gActiveUnit,UsingSpellMenu)[GetNthUsableSpell(gActiveUnit,proc->commandIndex,UsingSpellMenu)];
 	SelectedSpell = spell;
 	
 	//UpdateMenuItemPanel(proc); // We're gonna rewrite and inline this instead.
@@ -88,13 +88,13 @@ int SpellOnHover(MenuProc* proc)
 	Text_InsertNumberOr2Dashes(textHandle2,0x54,2,gBattleActor.battleCritRate);
 	Text_InsertNumberOr2Dashes(textHandle3,0x54,2,gBattleActor.battleAvoidRate);
 	
-	Text_Display(textHandle,&gBg0MapBuffer[((y+1)<<5)+1+x]);
-	Text_Display(textHandle2,&gBg0MapBuffer[((y+3)<<5)+1+x]);
-	Text_Display(textHandle3,&gBg0MapBuffer[((y+5)<<5)+1+x]);
+	Text_Display(textHandle,&gBG0MapBuffer[y+1][x+1]);
+	Text_Display(textHandle2,&gBG0MapBuffer[y+3][x+1]);
+	Text_Display(textHandle3,&gBG0MapBuffer[y+5][x+1]);
 	
-	//u16* bg0buffer = GetBgMapBuffer(0) + x + (y << 5);
-	DrawIcon(GetBgMapBuffer(0) + x + (y << 5)+0x25,GetItemType(spell)+0x70,menuItemPanel->oam2base<<0xC);
-	// 0x0202BE6A
+	//DrawIcon(GetBgMapBuffer(0) + x + (y << 5)+0x25,GetItemType(spell)+0x70,menuItemPanel->oam2base<<0xC);
+	DrawIcon(&gBG0MapBuffer[y+1][x+5],GetItemType(spell)+0x70,menuItemPanel->oam2base<<0xC);
+	
 	BmMapFill(gMapMovement,-1);
 	BmMapFill(gMapRange,0);
 	FillRangeMapByRangeMask(gActiveUnit,GetWeaponRangeMask(spell));
@@ -104,7 +104,10 @@ int SpellOnHover(MenuProc* proc)
 
 int SpellOnUnhover(MenuProc* proc)
 {
-	HideMoveRangeGraphics();
+	if ( !ProcFind(&gProc_TargetSelection) ) // Don't hide the squares if we're going to the target selection menu.
+	{
+		HideMoveRangeGraphics();
+	}
 	return 0;
 }
 
@@ -115,7 +118,7 @@ void NewMenuRText(MenuProc* menuProc, MenuCommandProc* commandProc) // Autohook 
 	if ( UsingSpellMenu )
 	{
 		// Get RText for the spell menu instead.
-		DrawItemRText(xTile,yTile,GetNthUsableSpell(gActiveUnit,commandProc->commandDefinitionIndex));
+		DrawItemRText(xTile,yTile,SpellsGetter(gActiveUnit,UsingSpellMenu)[GetNthUsableSpell(gActiveUnit,commandProc->commandDefinitionIndex,UsingSpellMenu)]);
 	}
 	else
 	{
@@ -133,11 +136,10 @@ void NewMenuRText(MenuProc* menuProc, MenuCommandProc* commandProc) // Autohook 
 
 void NewExitBattleForecast(Proc* proc)
 {
-	if ( SelectedSpell )
-	{
-		// They were using the magic menu. Return there.
-		GaidenMagicUMEffect(NULL,NULL); // The only thing the UM effect uses the procs for is error R-text which shouldn't be possible if we've exited the forecast.
-	}
+	// If they were using the magic menu. Return there.
+	// The only thing the UM effect uses the procs for is error R-text which shouldn't be possible if we've exited the forecast.
+	if ( UsingSpellMenu == BLACK_MAGIC ) { GaidenBlackMagicUMEffect(NULL,NULL); }
+	else if ( UsingSpellMenu == WHITE_MAGIC ) { GaidenWhiteMagicUMEffect(NULL,NULL); }
 	else
 	{
 		// They were not using the magic menu. Return to regular attack.

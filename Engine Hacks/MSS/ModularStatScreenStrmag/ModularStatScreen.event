@@ -188,11 +188,15 @@
   #ifdef ENABLE_PERSONAL_INFO
   
 	ALIGN 4
-	MESSAGE page 4 at currentOffset
 	MSS_page4:
       #incbin "asm/mss_page4_runa.dmp"
 	  MESSAGE page 4 ends at currentOffset
 	  POIN PersonalDataTable
+	  #ifdef GAIDEN_MAGIC
+		POIN GaidenStatScreen
+	  #else
+		WORD 0
+	  #endif // GAIDEN_MAGIC
 	  
 	ALIGN 4
     PageNumberCheck:
@@ -462,16 +466,16 @@ ALIGN 4
     RMenu(0,ST_Class4,0,ST_Dislikes,0x18,0x50,0x0,NameDescGetter)
 
   ST_Class4:
-    RMenu(ST_Name4,ST_Level4,0,ST_Age,0x6,0x68,0x6E8,ClassDescGetter)
+    RMenu(ST_Name4,ST_Level4,0,ST_Spell1,0x6,0x68,0x6E8,ClassDescGetter)
 
   ST_Level4:
     RMenu(ST_Class4,ST_HP4,0,ST_Exp4,0x6,0x78,0x542)
 
   ST_Exp4:
-    RMenu(ST_Class4,ST_HP4,ST_Level4,ST_Age,0x26,0x78,0x543)
+    RMenu(ST_Class4,ST_HP4,ST_Level4,ST_Spell3,0x26,0x78,0x543)
 
   ST_HP4:
-    RMenu(ST_Level4,0,0,ST_Age,0x6,0x88,0x544)
+    RMenu(ST_Level4,0,0,ST_Spell5,0x6,0x88,0x544)
 
   ST_Likes:
     RMenu(0,ST_Dislikes,ST_Name4,ST_Height,0x66,0x18,LikesDesc)
@@ -480,12 +484,29 @@ ALIGN 4
     RMenu(ST_Likes,ST_Age,ST_Name4,ST_Height,0x66,0x38,DislikesDesc)
 	
   ST_Age:
-    RMenu(ST_Dislikes,0,ST_Class4,ST_Height,0x66,0x58,AgeDesc)
+    RMenu(ST_Dislikes,ST_Spell1,ST_Class4,ST_Height,0x66,0x58,AgeDesc)
 	
   ST_Height:
-    RMenu(ST_Dislikes,0,ST_Age,0,0xa6,0x58,HeightDesc)
+    RMenu(ST_Dislikes,ST_Spell2,ST_Age,0,0xa6,0x58,HeightDesc)
 	
 #endif // ENABLE_PERSONAL_INFO
+
+#ifdef GAIDEN_MAGIC
+	
+  ST_Spell1:
+    RMenu(ST_Age,ST_Spell3,ST_Class4,ST_Spell2,0x66,0x68,0,GaidenRTextLooper,GaidenRTextGetter)
+  ST_Spell2:
+    RMenu(ST_Height,ST_Spell4,ST_Spell1,0,0xA6,0x68,1,GaidenRTextLooper,GaidenRTextGetter)
+  ST_Spell3:
+    RMenu(ST_Spell1,ST_Spell5,ST_Exp4,ST_Spell4,0x66,0x78,2,GaidenRTextLooper,GaidenRTextGetter)
+  ST_Spell4:
+    RMenu(ST_Spell2,ST_Spell6,ST_Spell3,0,0xA6,0x78,3,GaidenRTextLooper,GaidenRTextGetter)
+  ST_Spell5:
+    RMenu(ST_Spell3,0,ST_HP4,ST_Spell6,0x66,0x88,4,GaidenRTextLooper,GaidenRTextGetter)
+  ST_Spell6:
+    RMenu(ST_Spell4,0,ST_Spell5,0,0xA6,0x88,5,GaidenRTextLooper,GaidenRTextGetter)
+	
+#endif // GAIDEN_MAGIC
 
 //Remove glowy spinny circle thingy from stat screen
 

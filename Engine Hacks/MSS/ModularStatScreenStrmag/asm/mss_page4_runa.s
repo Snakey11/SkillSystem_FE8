@@ -1,6 +1,8 @@
 .thumb
 .include "mss_defs.s"
 
+.equ GaidenStatScreen, PersonalInfoTable+4
+
 page_start
 
 draw_textID_at 13, 3, textID=0xd4c, width=16, colour=Blue
@@ -172,6 +174,19 @@ ldr    r1, =(tile_origin+(0x20*2*11)+(2*25))
 mov    r3, #0
 blh    DrawText, r4
 add    r7, #8
+
+@ Next let's draw Gaiden spells if the hack is installed.
+ldr r0, GaidenStatScreen
+cmp r0, #0x00
+beq SkipGaidenDraw
+	@ Gaiden magic is installed. Call the function for stat screen drawing.
+	mov lr, r0
+	mov r0, #13 @ X coordinate.
+	mov r1, #13 @ Y coordinate.
+	mov r2, r7  @ Current TextHandle.
+	.short 0xF800
+	mov r0, r7 @ Next "blank" TextHandle.
+SkipGaidenDraw:
 
 page_end
 

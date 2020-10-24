@@ -16,6 +16,13 @@
 	SHORT GaidenMagicSpellMenuErrorText
 	gGaidenMagicHPCostText:
 	SHORT GaidenMagicHPCostText
+	ALIGN 4
+	gCan_Attack_Target:
+	POIN Can_Attack_Target|1
+	gGet_Item_Range:
+	POIN Get_Item_Range|1
+	gAll_Weapons_One_Square:
+	POIN All_Weapons_One_Square|1
 	
 	PUSH
 	ORG $2A774
@@ -23,6 +30,9 @@
 	
 	ORG $59B654
 	POIN NewExitBattleForecast|1
+	
+	ORG $22C36
+	SHORT 0x2502 // Have the Return_Range_Bitfield call use slot -2.
 	POP
 	
 	ALIGN 4
@@ -60,5 +70,21 @@
 		MagicMenuCommand($4C)
 		MagicMenuCommand($4D)
 	MagicMenuCommandEnd
+
+	ALIGN 4
+	NewGaidenSpellPopup:
+	Popup_SetSound(0x5A)
+	Popup_SetColor(0)
+	Popup_StringPtr(GaidenPopupLearned)
+	Popup_SetColor(2)
+	Popup_ItemName
+	Popup_Space(1)
+	Popup_ItemIcon
+	Popup_StringId(0x22) // .[X]
+	Popup_End
+	
+	ALIGN 4
+	GaidenPopupLearned:
+	String("Learned ") ; BYTE 0
 
 #endif // GAIDEN_MAGIC

@@ -2,7 +2,9 @@
 ALIGN 4
 EirikaSpellList:
 BYTE 5 Fire
+BYTE 7 Lightning
 BYTE 10 Thunder
+BYTE 11 Heal
 BYTE 15 Elfire
 BYTE 20 Bolting
 BYTE 81 Fimbulvetr

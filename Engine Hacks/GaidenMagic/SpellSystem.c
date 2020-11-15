@@ -1,5 +1,5 @@
 
-u8* SpellsGetter(Unit* unit, int type) // Returns a pointer to a list of spells this character can currently use. Type: 0 = All, 1 = black magic, 2 = white magic.
+u8* SpellsGetter(Unit* unit, int type) // Returns a pointer to a list of spells this character can currently use. Type: -1 = All, 1 = black magic, 2 = white magic.
 {
 	return SpellsGetterForLevel(unit,-1,type);
 }
@@ -7,7 +7,6 @@ u8* SpellsGetter(Unit* unit, int type) // Returns a pointer to a list of spells 
 u8* SpellsGetterForLevel(Unit* unit, int level, int type)  // Same as SpellsGetter but filters for a specific level.
 {
 	// Treat level = -1 as any level equal to or below the unit's current level.
-	for ( int i = 0 ; i < 10 ; i++ ) { SpellsBuffer[i] = 0; } // Clear the spell buffer.
 	int unitLevel = unit->level;
 	if ( UNIT_ATTRIBUTES(unit) & CA_PROMOTED ) { unitLevel += 80; } // Treat promoted as top bit set.
 	u8* currBuffer = SpellsBuffer;
@@ -94,67 +93,37 @@ int NewGetUnitEquippedWeaponSlot(Unit* unit) // Autohook to 0x08016B58.
 	return -1;
 }
 
-// We need to change this FE8-Item Range Fix function to include checking Gaiden magic.
-	// Slot is the inventory slot to check. -1 is check all slots, and 9 can represent just for Gaiden magic. Why don't we let -2 mean only loop through items in inventory?
-// Wow this function actually is supposed to return a value in r1.
-	// Return the range bitfield (range mask) in r0 and the min/max halfword in r1.
-	// The min/max halfword only really appears to apply to special ranges not even including seige tomes?
-	// Jesus christ this return scheme aaaaaaaaa. This is a way to "trick" the compiler into returning into r1.
-long long Return_Range_Bitfield(Unit* unit, int slot, int(*usability)(Unit* unit, int item))
+// On return, bit 1 set has weapon use, bit 2 set has staff use. I know this is used for deciding what squares to display in range display.
+u32 NewGetUnitUseFlags(Unit* unit) // Autohook to 0x08018B28.
 {
-	long long current = 0;
-	if ( slot == -1 || slot == -2 )
+	u32 ret = 0;
+	for ( int i = 0 ; i < 5 && unit->items[i] ; i++ )
 	{
-		// Loop through all items.
-		for ( int i = 0 ; i < 5 && unit->items[i] ; i++ )
+		u32 attributes = GetItemAttributes(unit->items[i]);
+		if ( attributes & IA_WEAPON )
 		{
-			if ( usability(unit,unit->items[i]) )
-			{
-				current = IncorporateNewRange(current,gGet_Item_Range(unit,unit->items[i]));
-			}
+			if ( CanUnitUseWeaponNow(unit,unit->items[i]) ) { ret |= 1; }
 		}
-		return ( slot == -1 ? IncorporateNewRange(current,GetUnitRangeMaskForSpells(unit)) : current );
-	}
-	else
-	{
-		// Get for this specific slot.
-		if ( slot != 9 )
+		else if ( attributes & IA_STAFF )
 		{
-			return gGet_Item_Range(unit,unit->items[slot]);
-		}
-		else
-		{
-			// Specifically return all the Gaiden magic that's usable.
-			return GetUnitRangeMaskForSpells(unit);
+			if ( CanUnitUseStaffNow(unit,unit->items[i]) ) { ret |= 2; }
 		}
 	}
-}
-
-// r0 = mask, r1 = minmax. See ReturnRangeBitfield.
-long long GetUnitRangeMaskForSpells(Unit* unit)
-{
-	long long current = 0;
+	// We've looped through inventory. Let's also loop through Gaiden spells.
 	u8* spells = SpellsGetter(unit,-1);
 	for ( int i = 0 ; spells[i] ; i++ )
 	{
-		int spell = spells[i]|0xFF00;
-		if ( CanCastSpell(unit,spell) && HasSufficientHP(unit,spell) )
+		u32 attributes = GetItemAttributes(spells[i]);
+		if ( attributes & IA_WEAPON )
 		{
-			current = IncorporateNewRange(current,gGet_Item_Range(unit,spell));
+			if ( CanUnitUseWeaponNow(unit,spells[i]) ) { ret |= 1; }
+		}
+		else if ( attributes & IA_STAFF )
+		{
+			if ( CanUnitUseStaffNow(unit,spells[i]) ) { ret |= 2; }
 		}
 	}
-	return current;
-}
-
-static long long IncorporateNewRange(long long existing, long long new)
-{
-	u32 existingMask = existing & 0xFFFFFFFF;
-	u32 newMask = new & 0xFFFFFFFF;
-	long long existingMin = existing >> 40;
-	long long newMin = new >> 40;
-	long long existingMax = (existing >> 32) & 0xFF;
-	long long newMax = (new >> 32) & 0xFF;
-	return existingMask|newMask|(( newMin < existingMin ? newMin : existingMin ) << 40)|(( newMax > existingMax ? newMax : existingMax ) << 32);
+	return ret;
 }
 
 // Called by the Skill System's proc loop alongside counter skills. If this is a gaiden spell, set the HP drain bit and write how much HP to drain.
@@ -211,13 +180,12 @@ static int CanCastSpellNow(Unit* unit, int spell)
 		if ( !CanUnitUseWeaponNow(gActiveUnit,spell) ) { return 0; }
 		// Next, we can initialize a "dummy" target list and check if it's empty. If not, then there's a valid target we can attack.
 		MakeTargetListForWeapon(gActiveUnit,spell);
-		if ( GetTargetListSize() == 0 ) { return 0; }
+		return GetTargetListSize() != 0;
 	}
 	else
 	{
-		if ( !CanUnitUseItem(gActiveUnit,spell) ) { return 0; }
+		return CanUnitUseItem(gActiveUnit,spell);
 	}
-	return 1;
 }
 
 static int CanCastSpell(Unit* unit, int spell) // Same as CanCastSpellNow but calls the functions... without the "Now."
@@ -228,13 +196,25 @@ static int CanCastSpell(Unit* unit, int spell) // Same as CanCastSpellNow but ca
 		if ( !CanUnitUseWeapon(gActiveUnit,spell) ) { return 0; }
 		// Next, we can initialize a "dummy" target list and check if it's empty. If not, then there's a valid target we can attack.
 		MakeTargetListForWeapon(gActiveUnit,spell);
-		if ( GetTargetListSize() == 0 ) { return 0; }
+		return GetTargetListSize() != 0;
 	}
 	else
 	{
-		if ( !CanUnitUseItem(gActiveUnit,spell) ) { return 0; }
+		return CanUnitUseItem(gActiveUnit,spell);
 	}
-	return 1;
+}
+
+static int CanUseAttackSpellsNow(Unit* unit, int type) // Can the unit use a Gaiden spell now that's an attack?
+{
+	u8* spells = SpellsGetter(unit,type);
+	for ( int i = 0 ; spells[i] ; i++ )
+	{
+		if ( GetItemData(spells[i])->weaponType != ITYPE_STAFF && CanCastSpellNow(unit,spells[i]) )
+		{
+			return 1;
+		}
+	}
+	return 0;
 }
 
 // This should loop through spells that are usable NOW. Basically, a spell should be considered usable if it appears in the spell menu.

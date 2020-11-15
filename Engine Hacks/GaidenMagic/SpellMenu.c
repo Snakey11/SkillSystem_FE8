@@ -15,7 +15,7 @@ int SpellDrawingRoutine(MenuProc* menu, MenuCommandProc* menuCommand)
 	// extern void DrawItemMenuCommand(TextHandle* textHandle, u16 item, int canUse, u16* buffer);
 	int spell = SpellsGetter(gActiveUnit,UsingSpellMenu)[menuCommand->commandDefinitionIndex] | 0xFF00; // Max uses.
 	// At this point, the spell should be guranteed to exist. Let's check to see if we have the HP to cast the spell (and the weapon rank).
-	int canUse = CanCastSpell(gActiveUnit,spell) && HasSufficientHP(gActiveUnit,spell);
+	int canUse = HasSufficientHP(gActiveUnit,spell);
 	DrawItemMenuCommand(&menuCommand->text,spell,canUse,&gBg0MapBuffer[menuCommand->yDrawTile * 32 + menuCommand->xDrawTile]);
 	EnableBgSyncByMask(1);
 	return 0;
@@ -26,7 +26,7 @@ int MagicMenuBPress(void)
 	FillBgMap(gBg2MapBuffer,0);
 	EnableBgSyncByMask(4);
 	Text_ResetTileAllocation();
-	// Refer to the Skill System's repointed unit menu (even though it's not a table reee).
+	// Refer to the Skill System's repointed unit menu.
 	StartMenu_AndDoSomethingCommands(&gMenu_UnitMenu,gGameState._unk1C.x - gGameState.cameraRealPos.x,1,16);
 	HideMoveRangeGraphics();
 	SelectedSpell = 0;
@@ -47,9 +47,16 @@ int SpellEffectRoutine(MenuProc* proc, MenuCommandProc* commandProc)
 		// Actual effect. Call the target selection menu and shit.
 		gActionData.itemSlotIndex = 0;
 		ClearBG0BG1();
-		//MakeTargetListForWeapon(gActiveUnit,SelectedSpell|0xFF00);
-		SetupTargetSelectionForGenericStaff(gActiveUnit,SelectedSpell|0xFF00);
-		StartTargetSelection(&SpellTargetSelection);
+		int type = GetItemData(SelectedSpell)->weaponType;
+		if ( type != ITYPE_STAFF )
+		{
+			MakeTargetListForWeapon(gActiveUnit,SelectedSpell|0xFF00);
+			StartTargetSelection(&SpellTargetSelection);
+		}
+		else
+		{
+			ItemEffect_Call(gActiveUnit,SelectedSpell|0xFF00);
+		}
 		return 0x27;
 	}
 }
@@ -93,12 +100,13 @@ int SpellOnHover(MenuProc* proc)
 	Text_Display(textHandle3,&gBG0MapBuffer[y+5][x+1]);
 	
 	//DrawIcon(GetBgMapBuffer(0) + x + (y << 5)+0x25,GetItemType(spell)+0x70,menuItemPanel->oam2base<<0xC);
-	DrawIcon(&gBG0MapBuffer[y+1][x+5],GetItemType(spell)+0x70,menuItemPanel->oam2base<<0xC);
+	int type = GetItemData(spell)->weaponType;
+	DrawIcon(&gBG0MapBuffer[y+1][x+5],type+0x70,menuItemPanel->oam2base<<0xC);
 	
 	BmMapFill(gMapMovement,-1);
 	BmMapFill(gMapRange,0);
 	FillRangeMapByRangeMask(gActiveUnit,GetWeaponRangeMask(spell));
-	DisplayMoveRangeGraphics(2);
+	DisplayMoveRangeGraphics(( type == ITYPE_STAFF ? 4 : 2 )); // See note in UnitMenu.c.
 	return 0;
 }
 

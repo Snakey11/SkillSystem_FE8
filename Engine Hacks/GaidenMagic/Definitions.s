@@ -30,9 +30,9 @@ SET_FUNC RTextRight, (0x080893E4+1)
 
 SET_DATA SpellsBuffer, 0x202B6D0
 
-SET_DATA UsingSpellMenu, 0x0203F082
-
 SET_DATA SelectedSpell, 0x0203F080
+
+SET_DATA UsingSpellMenu, 0x0203F082
 
 SET_DATA SpellTargetSelection, 0x0859D3F8
 
@@ -52,3 +52,5 @@ SET_FUNC NewGetUnitRangeMask, (0x080171E8+1)
 SET_FUNC SetUpBattleWeaponDataHack, (0x0802A730+1)
 
 SET_FUNC NewMenuRText, (0x08024588+1)
+
+SET_FUNC NewGetUnitUseFlags, (0x08018B28+1)

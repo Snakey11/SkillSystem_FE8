@@ -68,18 +68,48 @@ int GaidenMagicUMEffectExt(u8* spellsList, MenuProc* proc, MenuCommandProc* comm
 	}
 }
 
-int GaidenMagicUMHover(MenuProc* proc)
+int GaidenBlackMagicUMHover(MenuProc* proc)
 {
+	UsingSpellMenu = BLACK_MAGIC;
 	BmMapFill(gMapMovement,-1);
 	BmMapFill(gMapRange,0);
-	gAll_Weapons_One_Square(gActiveUnit,9);
-	//FillRangeMapByRangeMask(gActiveUnit,GetUnitRangeMaskForSpells(gActiveUnit));
-	DisplayMoveRangeGraphics(3);
+	if ( CanUseAttackSpellsNow(gActiveUnit,BLACK_MAGIC) ) // If we can use an attack spell now, display the red range.
+	{
+		All_Spells_One_Square(gActiveUnit,&RangeUsabilityCheckNotStaff);
+		DisplayMoveRangeGraphics(3);
+	}
+	else
+	{
+		All_Spells_One_Square(gActiveUnit,&RangeUsabilityCheckStaff);
+		DisplayMoveRangeGraphics(5);
+	}
+	// Bit 1 copies the blue palette to the palette buffer. Bit 2 copies the red palette. Bit 3 copies the green palette.
+	// Not having the bottom bit set seems to have problems clearing the squares?
+	// Seems the blue palette is always in buffer 4+2, the red and green palettes are always in buffer 4+22.
+	return 0;
+}
+
+int GaidenWhiteMagicUMHover(MenuProc* proc)
+{
+	UsingSpellMenu = WHITE_MAGIC;
+	BmMapFill(gMapMovement,-1);
+	BmMapFill(gMapRange,0);
+	if ( CanUseAttackSpellsNow(gActiveUnit,WHITE_MAGIC) ) // If we can use an attack spell now, display the red range.
+	{
+		All_Spells_One_Square(gActiveUnit,&RangeUsabilityCheckNotStaff);
+		DisplayMoveRangeGraphics(3);
+	}
+	else
+	{
+		All_Spells_One_Square(gActiveUnit,&RangeUsabilityCheckStaff);
+		DisplayMoveRangeGraphics(5);
+	}
 	return 0;
 }
 
 int GaidenMagicUMUnhover(MenuProc* proc)
 {
+	if ( !SelectedSpell ) { UsingSpellMenu = 0; } // Don't unset this if we're going to the spell menu.
 	HideMoveRangeGraphics();
 	return 0;
 }

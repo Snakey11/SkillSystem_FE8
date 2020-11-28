@@ -17,7 +17,7 @@
 	gGaidenMagicHPCostText:
 	SHORT GaidenMagicHPCostText
 	ALIGN 4
-	gCan_Attack_Target:
+	gCan_Attack_Target: // We do these to ensure the top bit is set.
 	POIN Can_Attack_Target|1
 	gGet_Item_Range:
 	POIN Get_Item_Range|1
@@ -27,6 +27,10 @@
 	POIN All_Staffs_One_Square|1
 	gWrite_Range:
 	POIN Write_Range|1
+	gGetItemRangeM:
+	POIN GetItemRangeM|1
+	gHealStaff_RangeSetup:
+	POIN HealStaff_RangeSetup|1
 	
 	PUSH
 	ORG $2A774

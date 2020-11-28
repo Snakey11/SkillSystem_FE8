@@ -46,6 +46,7 @@ int SpellEffectRoutine(MenuProc* proc, MenuCommandProc* commandProc)
 	{
 		// Actual effect. Call the target selection menu and shit.
 		gActionData.itemSlotIndex = 0;
+		DidSelectSpell = 1;
 		ClearBG0BG1();
 		int type = GetItemData(SelectedSpell)->weaponType;
 		if ( type != ITYPE_STAFF )
@@ -105,14 +106,16 @@ int SpellOnHover(MenuProc* proc)
 	
 	BmMapFill(gMapMovement,-1);
 	BmMapFill(gMapRange,0);
-	FillRangeMapByRangeMask(gActiveUnit,GetWeaponRangeMask(spell));
+	//FillRangeMapByRangeMask(gActiveUnit,GetWeaponRangeMask(spell));
+	//FillRangeMapByRangeMask(gActiveUnit,gGet_Item_Range(gActiveUnit,spell));
+	gWrite_Range(gActiveUnit->xPos,gActiveUnit->yPos,gGet_Item_Range(gActiveUnit,spell));
 	DisplayMoveRangeGraphics(( type == ITYPE_STAFF ? 4 : 2 )); // See note in UnitMenu.c.
 	return 0;
 }
 
 int SpellOnUnhover(MenuProc* proc)
 {
-	if ( !ProcFind(&gProc_TargetSelection) ) // Don't hide the squares if we're going to the target selection menu.
+	if ( !DidSelectSpell ) // Don't hide the squares if we're going to the target selection menu.
 	{
 		HideMoveRangeGraphics();
 	}

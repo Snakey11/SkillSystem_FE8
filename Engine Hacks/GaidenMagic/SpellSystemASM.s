@@ -8,8 +8,12 @@
 .endm
 
 .equ GetUnitEquippedWeaponSlot, 0x08016B58
-.equ UsingSpellMenu, 0x0203F082
+.equ gActionData, 0x0203A958
+.equ GetUnit, 0x08019431
+.equ GetItemIndex, 0x080174ED
 .equ DefenseStruct, 0x0203A56C
+.equ UsingSpellMenu, 0x0203F082
+.equ SelectedSpell, 0x0203F080
 
 .global SetUpBattleWeaponDataHack
 .type SetUpBattleWeaponDataHack, %function
@@ -93,6 +97,9 @@ mov r4, r2
 ldr r1, =#0x802A84B
 bx r1
 
+.ltorg
+.align
+
 .global ZeroOutSpellAtBatteEnd
 .type ZeroOutSpellAtBatteEnd, %function
 ZeroOutSpellAtBatteEnd: @ Autohook to 0x0802C1EC.
@@ -112,3 +119,145 @@ ldr r0, [ r5, #0xC ]
 str r0, [ r4, #0xC ]
 ldr r1, =0x0802C203
 bx r1
+
+.ltorg
+.align
+
+.global GaidenActionStaffDoorChestUseItemHack
+.type GaidenActionStaffDoorChestUseItemHack, %function
+GaidenActionStaffDoorChestUseItemHack: @ Autohook to 0x0802FC48.
+push { r4 - r7, lr }
+mov r7, r8
+push { r7 }
+mov r6, r0
+ldr r4, =gActionData
+@ Now we need to check whether we're using the spell menu.
+ldr r0, =UsingSpellMenu
+ldrb r0, [ r0 ] @ Nonzero if we're using GaidenMagic.
+cmp r0, #0x00
+bne ActionFixUsingSpell
+	ldr r0, [ r4, #0x0C ]
+	blh GetUnit, r1
+	ldrb r1, [ r4, #0x12 ]
+	lsl r1, r1, #0x01
+	add r0, r0, #0x1E
+	add r0, r0, r1
+	ldrh r0, [ r0 ]
+	blh GetItemIndex, r1
+	b EndActionFix
+ActionFixUsingSpell:
+	ldr r0, =SelectedSpell
+	ldrb r0, [ r0 ]
+EndActionFix:
+ldr r1, =#0x0802FC67
+bx r1
+
+.ltorg
+.align
+
+.global GaidenPreActionHack
+.type GaidenPreActionHack, %function
+GaidenPreActionHack: @ Autohook to 0x0801D1D0.
+ldr r1, =UsingSpellMenu
+ldrb r1, [ r1 ]
+cmp r0, #0x00
+bne PreActionFixUsingSpell
+	ldrb r1, [ r4, #0x12 ]
+	lsl r1, r1, #0x01
+	add r0, r0, #0x1E
+	add r0, r0, r1
+	ldrh r0, [ r0 ]
+	blh GetItemIndex, r1
+	mov r2, r0
+	b EndPreActionFix
+PreActionFixUsingSpell:
+	ldr r2, =SelectedSpell
+	ldrb r2, [ r2 ]
+EndPreActionFix:
+ldr r0, =#0x0801D1E1
+bx r0
+
+.ltorg
+.align
+
+.global GaidenSetupBattleUnitForStaffHack
+.type GaidenSetupBattleUnitForStaffHack, %function
+GaidenSetupBattleUnitForStaffHack: @ Autohook to 0x0802CB24.
+push { r4 - r7, lr } @ r0 = unit, r1 = gActionData+0x12 = inventory slot.
+mov r2, r0
+mov r7, r1
+ldr r1, =UsingSpellMenu
+ldrb r1, [ r1 ]
+cmp r1, #0x00
+bne SetupBattleUnitForStaffUsingSpell
+	lsl r1, r7, #0x01
+	add r0, #0x1E
+	add r0, r0, r1
+	ldrh r6, [ r0 ]
+	cmp r7, #0x00
+	bge SetupBattleUnitForStaffSkip
+		mov r6, #0x00
+	SetupBattleUnitForStaffSkip:
+	b EndSetupBattleUnitForStaffFix
+SetupBattleUnitForStaffUsingSpell:
+ldr r6, =SelectedSpell
+ldrb r6, [ r6 ]
+mov r0, #0xFF
+lsl r0, r0, #8
+orr r6, r0, r6
+EndSetupBattleUnitForStaffFix:
+ldr r0, =#0x0802CB39
+bx r0
+
+.ltorg
+.align
+
+.global GaidenExecStandardHealHack
+.type GaidenExecStandardHealHack, %function
+GaidenExecStandardHealHack: @ Autohook to 0x0802EBB4.
+ldrb r0, [ r4, #0x0C ]
+blh GetUnit, r1
+mov r5, r0
+ldrb r0, [ r4, #0x0C ]
+blh GetUnit, r1
+ldr r1, =UsingSpellMenu
+ldrb r1, [ r1 ]
+cmp r1, #0x00
+bne ExecStandardHealUsingSpell
+	ldrb r1, [ r4, #0x12 ]
+	lsl r1, r1, #0x01
+	add r0, r0, #0x1E
+	add r0, r0, r1
+	ldrh r1, [ r0 ]
+	b EndExecStandardHeal
+ExecStandardHealUsingSpell:
+ldr r1, =SelectedSpell
+ldrb r1, [ r1 ]
+EndExecStandardHeal:
+ldr r0, =#0x0802EBCD
+bx r0
+
+.ltorg
+.align
+
+.global GaidenExecFortifyHack
+.type GaidenExecFortifyHack, %function
+GaidenExecFortifyHack: @ Autohook to 0x0802F184.
+ldrb r0, [ r4, #0x0C ]
+blh GetUnit, r1
+ldr r1, =UsingSpellMenu
+ldrb r1, [ r1 ]
+cmp r1, #0x00
+bne ExecFortifyUsingSpell
+	ldrb r1, [ r4, #0x12 ]
+	lsl r1, r1, #0x01
+	add r0, r0, #0x1E
+	add r0, r0, r1
+	ldrh r1, [ r0 ]
+	b EndExecFortify
+ExecFortifyUsingSpell:
+ldr r1, =SelectedSpell
+ldrb r1, [ r1 ]
+EndExecFortify:
+ldr r0, =#0x0802F195
+bx r0

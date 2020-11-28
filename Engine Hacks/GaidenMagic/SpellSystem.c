@@ -46,7 +46,15 @@ int NewGetUnitEquippedWeapon(Unit* unit) // Autohook to 0x08016B28.
 	int vanillaEquipped = GetVanillaEquipped(unit);
 	if ( gChapterData.currentPhase == ( unit->index & 0xC0 ) )
 	{
-		return ( UsingSpellMenu ? SelectedSpell|0xFF00 : vanillaEquipped );
+		if ( !UsingSpellMenu ) { return vanillaEquipped; }
+		else
+		{
+			// We need to cover the case of using a helpful staff on an ally.
+			if ( unit->index == gBattleTarget.unit.index && GetItemData(SelectedSpell)->weaponType == ITYPE_STAFF )
+			{
+				return vanillaEquipped;
+			} else { return SelectedSpell|0xFF00; }
+		}
 	}
 	else
 	{
@@ -260,4 +268,18 @@ static int GetSpellType(int spell)
 	if ( wType == ITYPE_ANIMA || wType == ITYPE_DARK ) { return BLACK_MAGIC; }
 	else if ( wType == ITYPE_STAFF || wType == ITYPE_LIGHT) { return WHITE_MAGIC; }
 	else { return -1; }
+}
+
+void Target_Routine_For_Fortify(BattleUnit* unit)
+{
+	u16 item = 0;
+	if ( UsingSpellMenu )
+	{
+		item = SelectedSpell|0xFF00;
+	}
+	else
+	{
+		item = unit->unit.items[gActionData.itemSlotIndex];
+	}
+	gHealStaff_RangeSetup(unit,0,item);
 }

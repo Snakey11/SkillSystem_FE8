@@ -1,10 +1,36 @@
 
 ALIGN 4
 EirikaSpellList:
-BYTE 5 Fire
-BYTE 7 Lightning
-BYTE 10 Rescue
-BYTE 11 Heal
-//BYTE 20 Bolting
-//BYTE 85 Fimbulvetr
+/*BYTE 5 Heal
+BYTE 6 Mend
+BYTE 7 Rescue
+BYTE 8 Warp
+BYTE 9 Barrier*/
+//BYTE 10 Physic
+/*BYTE 5 Silence
+BYTE 6 Physic*/
+BYTE 7 Fortify
+BYTE 8 Restore
+//BYTE 9 Sleep
+//BYTE 10 Berserk
+BYTE 5 0x56 // Torch
+//BYTE 6 Hammerne
+BYTE 9 Elfire
+BYTE 8 Unlock
+//BYTE 8 Warp
 BYTE 0 0
+
+/* STAFF NOTES
+
+Rescue and warp work perfectly.
+Heal, mend, recover, and physic work perfectly.
+Silence, sleep, and berserk work perfectly.
+Barrier works perfectly.
+Restore works perfectly.
+Hammerne works great but sometimes has a graphical bug in the menu?
+Torch works perfectly.
+
+So far no HP costs function.
+Fortify plays the battle animation but doesn't heal anyone.
+Unlock is untested.
+*/

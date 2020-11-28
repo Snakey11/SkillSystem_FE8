@@ -34,6 +34,8 @@ SET_DATA SelectedSpell, 0x0203F080
 
 SET_DATA UsingSpellMenu, 0x0203F082
 
+SET_DATA DidSelectSpell, 0x0203F084
+
 SET_DATA SpellTargetSelection, 0x0859D3F8
 
 SET_DATA StatScreenBufferMap, 0x02003C94
@@ -54,3 +56,13 @@ SET_FUNC SetUpBattleWeaponDataHack, (0x0802A730+1)
 SET_FUNC NewMenuRText, (0x08024588+1)
 
 SET_FUNC NewGetUnitUseFlags, (0x08018B28+1)
+
+SET_FUNC GaidenActionStaffDoorChestUseItemHack, (0x0802FC48+1)
+
+SET_FUNC GaidenPreActionHack, (0x0801D1D0+1)
+
+SET_FUNC GaidenSetupBattleUnitForStaffHack, (0x0802CB24+1)
+
+SET_FUNC GaidenExecStandardHealHack, (0x0802EBB4+1)
+
+SET_FUNC GaidenExecFortifyHack, (0x0802F184+1)

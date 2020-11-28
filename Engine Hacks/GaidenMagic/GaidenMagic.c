@@ -54,10 +54,12 @@ extern const MenuDefinition SpellSelectMenuDefs;
 extern u8 SpellsBuffer[10]; // 0x202B6D0. Undocced RAM. Just a temporary buffer it seems.
 extern u8 SelectedSpell; // 0x0203F080.
 extern u8 UsingSpellMenu; // 0x0203F082. What type of gaiden magic we're using. 0 if not.
+extern u8 DidSelectSpell; // 0x0203F084. Boolean for whether we've selected something from the spell menu.
 extern u16 gPopupItem; // 0x030005F4.
 extern u16 StatScreenBufferMap[32][32]; // 0x02003C94.
 extern u16 gBG0MapBuffer[32][32]; // 0x02022CA8.
 extern Unit* gpStatScreenUnit; // 0x02003BC08.
+
 extern u16 gGaidenMagicHPCostText;
 extern u16 gGaidenMagicUMErrorText;
 extern u16 gGaidenMagicSpellMenuErrorText;
@@ -67,6 +69,8 @@ extern long long(*gGet_Item_Range)(Unit* unit, int item);
 extern void(*gAll_Weapons_One_Square)(Unit* unit, int slot);
 extern void(*gAll_Staffs_One_Square)(Unit* unit, int slot);
 extern void(*gWrite_Range)(int x, int y, long long mask);
+extern void(*gGetItemRangeM)(int item);
+extern void(*gHealStaff_RangeSetup)(BattleUnit* unit, int empty, int item);
 
 extern void MakeTargetListForWeapon(Unit* unit, int item); // 0x080251B4.
 extern void SetFaceBlinkControlById(int faceId, int idk2); // 0x088006458. faceId is a guess.
@@ -116,6 +120,7 @@ static int GetNthUsableSpell(Unit* unit, int n, int type);
 static int GetVanillaEquipped(Unit* unit);
 static int DoesUnitKnowSpell(Unit* unit, u8 spell);
 static int GetSpellType(int spell);
+void Target_Routine_For_Fortify(BattleUnit* unit);
 
 long long Return_Range_Bitfield(Unit* unit, int slot, int(*usability)(Unit* unit, int item));
 long long GetUnitRangeMaskForSpells(Unit* unit, int(*usability)(Unit* unit, int item));

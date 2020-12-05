@@ -2,7 +2,7 @@
 // This follows those weird menu usability return values. 1 = usable, 2 = grey, 3 = unsuable.
 int SpellUsability(const struct MenuCommandDefinition* menuEntry, int index, int idk)
 {
-	int spell = SpellsGetter(gActiveUnit,UsingSpellMenu)[index]|0xFF00;
+	int spell = SpellsGetter(gActiveUnit,UsingSpellMenu)[GetNthUsableSpell(gActiveUnit,index,UsingSpellMenu)];
 	if ( !spell ) { return 3; }
 	// This option should be usable if the nth spell exists.
 	if ( !CanCastSpellNow(gActiveUnit,spell) ) { return 3; }
@@ -13,7 +13,7 @@ int SpellUsability(const struct MenuCommandDefinition* menuEntry, int index, int
 int SpellDrawingRoutine(MenuProc* menu, MenuCommandProc* menuCommand)
 {
 	// extern void DrawItemMenuCommand(TextHandle* textHandle, u16 item, int canUse, u16* buffer);
-	int spell = SpellsGetter(gActiveUnit,UsingSpellMenu)[menuCommand->commandDefinitionIndex] | 0xFF00; // Max uses.
+	int spell = SpellsGetter(gActiveUnit,UsingSpellMenu)[GetNthUsableSpell(gActiveUnit,menuCommand->commandDefinitionIndex,UsingSpellMenu)]|0xFF00;
 	// At this point, the spell should be guranteed to exist. Let's check to see if we have the HP to cast the spell (and the weapon rank).
 	int canUse = HasSufficientHP(gActiveUnit,spell);
 	DrawItemMenuCommand(&menuCommand->text,spell,canUse,&gBg0MapBuffer[menuCommand->yDrawTile * 32 + menuCommand->xDrawTile]);
@@ -69,47 +69,53 @@ int SpellOnHover(MenuProc* proc)
 	
 	//UpdateMenuItemPanel(proc); // We're gonna rewrite and inline this instead.
 	MenuItemPanelProc* menuItemPanel = (MenuItemPanelProc*)ProcFind(&gProc_MenuItemPanel);
-	TextHandle* textHandle = &menuItemPanel->textHandle;
-	TextHandle* textHandle2 = &menuItemPanel->textHandle2;
-	TextHandle* textHandle3 = &menuItemPanel->textHandle3;
 	int x = menuItemPanel->x;
 	int y = menuItemPanel->y;
 	
-	Text_Clear(&menuItemPanel->textHandle);
-	Text_Clear(&menuItemPanel->textHandle2);
-	Text_Clear(&menuItemPanel->textHandle3);
+	for ( int i = 0 ; i < 3 ; i++ ) { Text_Clear(&menuItemPanel->textHandles[i]); }
 	MakeUIWindowTileMap_BG0BG1(x,y,14,8,0);
-	BattleGenerateUiStats(gActiveUnit,9); // 9 is using a Gaiden spell.
 	
-	Text_InsertString(textHandle,0x02,0,GetStringFromIndex(0x4F1)); // Affin.
-	Text_InsertString(textHandle,0x32,0,GetStringFromIndex(gGaidenMagicHPCostText)); // HP Cost.
-	Text_InsertString(textHandle2,0x02,0,GetStringFromIndex(0x4F3)); // Atk.
-	Text_InsertString(textHandle3,0x02,0,GetStringFromIndex(0x4F4)); // Hit.
-	Text_InsertString(textHandle2,0x32,0,GetStringFromIndex(0x501)); // Crit.
-	Text_InsertString(textHandle3,0x32,0,GetStringFromIndex(0x4F5)); // Avoid.
+	int spellType = GetItemType(spell);
+	if ( spellType != ITYPE_STAFF )
+	{
+		BattleGenerateUiStats(gActiveUnit,9); // 9 is using a Gaiden spell.
+		Text_InsertString(&menuItemPanel->textHandles[0],0x02,0,GetStringFromIndex(0x4F1)); // Affin.
+		Text_InsertString(&menuItemPanel->textHandles[0],0x32,0,GetStringFromIndex(gGaidenMagicHPCostText)); // HP Cost.
+		Text_InsertString(&menuItemPanel->textHandles[1],0x02,0,GetStringFromIndex(0x4F3)); // Atk.
+		Text_InsertString(&menuItemPanel->textHandles[2],0x02,0,GetStringFromIndex(0x4F4)); // Hit.
+		Text_InsertString(&menuItemPanel->textHandles[1],0x32,0,GetStringFromIndex(0x501)); // Crit.
+		Text_InsertString(&menuItemPanel->textHandles[2],0x32,0,GetStringFromIndex(0x4F5)); // Avoid.
+		
+		int CostColor = 2;
+		if ( !HasSufficientHP(gActiveUnit,spell) ) { CostColor = 1; }
+		Text_InsertNumberOr2Dashes(&menuItemPanel->textHandles[0],0x54,CostColor,GetItemAwardedExp(spell));
+		Text_InsertNumberOr2Dashes(&menuItemPanel->textHandles[1],0x24,2,gBattleActor.battleAttack);
+		Text_InsertNumberOr2Dashes(&menuItemPanel->textHandles[2],0x24,2,gBattleActor.battleHitRate);
+		Text_InsertNumberOr2Dashes(&menuItemPanel->textHandles[1],0x54,2,gBattleActor.battleCritRate);
+		Text_InsertNumberOr2Dashes(&menuItemPanel->textHandles[2],0x54,2,gBattleActor.battleAvoidRate);
+		
+	}
+	else
+	{
+		const char* desc = GetStringFromIndex(GetItemUseDescId(spell));
+		int j = 0;
+		do // This loop handles writing multiple lines of description text. Why isn't there a function to handle this...? IS moment...
+		{
+			Text_InsertString(&menuItemPanel->textHandles[j],0,0,desc);
+			desc = Text_GetStringNextLine(desc);
+			j++;
+		} while ( *desc );
+	}
+	for ( int i = 0 ; i < 3 ; i++ ) { Text_Display(&menuItemPanel->textHandles[i],&gBG0MapBuffer[y+1+2*i][x+1]); }
 	
-	int CostColor = 2;
-	if ( !HasSufficientHP(gActiveUnit,spell) ) { CostColor = 1; }
-	Text_InsertNumberOr2Dashes(textHandle,0x54,CostColor,GetItemAwardedExp(spell));
-	Text_InsertNumberOr2Dashes(textHandle2,0x24,2,gBattleActor.battleAttack);
-	Text_InsertNumberOr2Dashes(textHandle3,0x24,2,gBattleActor.battleHitRate);
-	Text_InsertNumberOr2Dashes(textHandle2,0x54,2,gBattleActor.battleCritRate);
-	Text_InsertNumberOr2Dashes(textHandle3,0x54,2,gBattleActor.battleAvoidRate);
-	
-	Text_Display(textHandle,&gBG0MapBuffer[y+1][x+1]);
-	Text_Display(textHandle2,&gBG0MapBuffer[y+3][x+1]);
-	Text_Display(textHandle3,&gBG0MapBuffer[y+5][x+1]);
-	
-	//DrawIcon(GetBgMapBuffer(0) + x + (y << 5)+0x25,GetItemType(spell)+0x70,menuItemPanel->oam2base<<0xC);
-	int type = GetItemData(spell)->weaponType;
-	DrawIcon(&gBG0MapBuffer[y+1][x+5],type+0x70,menuItemPanel->oam2base<<0xC);
+	if ( spellType != ITYPE_STAFF ) { DrawIcon(&gBG0MapBuffer[y+1][x+5],spellType+0x70,menuItemPanel->oam2base<<0xC); } // This HAS to happen after the Text_Display calls.
 	
 	BmMapFill(gMapMovement,-1);
 	BmMapFill(gMapRange,0);
 	//FillRangeMapByRangeMask(gActiveUnit,GetWeaponRangeMask(spell));
 	//FillRangeMapByRangeMask(gActiveUnit,gGet_Item_Range(gActiveUnit,spell));
 	gWrite_Range(gActiveUnit->xPos,gActiveUnit->yPos,gGet_Item_Range(gActiveUnit,spell));
-	DisplayMoveRangeGraphics(( type == ITYPE_STAFF ? 4 : 2 )); // See note in UnitMenu.c.
+	DisplayMoveRangeGraphics(( spellType == ITYPE_STAFF ? 4 : 2 )); // See note in UnitMenu.c.
 	return 0;
 }
 

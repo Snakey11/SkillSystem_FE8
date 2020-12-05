@@ -143,7 +143,6 @@ void Proc_GaidenMagicHPCost(BattleUnit* attacker, BattleUnit* defender, NewBattl
 	{
 		// They're using a spell. Let's get the HP cost.
 		int cost = GetItemAwardedExp(attacker->weapon);
-		// Will they die if they try to cast this spell?
 		
 		// Let's set the HP depletion bit.
 		buffer->attributes |= 0x100; // "HP drain" bit.
@@ -282,4 +281,11 @@ void Target_Routine_For_Fortify(BattleUnit* unit)
 		item = unit->unit.items[gActionData.itemSlotIndex];
 	}
 	gHealStaff_RangeSetup(unit,0,item);
+}
+
+void GaidenZeroOutSpellVariables(void)
+{
+	UsingSpellMenu = 0;
+	SelectedSpell = 0;
+	DidSelectSpell = 0;
 }

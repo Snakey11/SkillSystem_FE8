@@ -1,6 +1,9 @@
 
 #ifdef GAIDEN_MAGIC
 	
+	#define GaidenUsingSpellMenu 0x0203F082
+	#define GaidenSelectedSpell 0x0203F080
+	
 	#include "GaidenMagic.lyn.event" // Compiled C.
 	
 	#include "SpellSystemASM.lyn.event" // Stuff not really suitable for C conversion.

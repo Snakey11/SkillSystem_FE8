@@ -12,6 +12,11 @@ enum
 {
 	BLACK_MAGIC = 1,
 	WHITE_MAGIC = 2,
+	
+	DIRECTION_UP = 0x00,
+	DIRECTION_RIGHT = 0x10,
+	DIRECTION_LEFT = 0x20,
+	DIRECTION_DOWN = 0x80
 };
 
 struct SpellList
@@ -28,7 +33,7 @@ struct MenuItemPanelProc
 	u8 x; // 0x30.
 	u8 y; // 0x31.
 	u8 oam2base, pad2; // 0x32, 0x33.
-	TextHandle textHandle, textHandle2, textHandle3; // 0x34, 0x3C 0x44.
+	TextHandle textHandles[3]; // 0x34, 0x3C 0x44.
 };
 
 struct NewBattleHit // Skill System's new 8-byte long rounds data.
@@ -121,6 +126,7 @@ static int GetVanillaEquipped(Unit* unit);
 static int DoesUnitKnowSpell(Unit* unit, u8 spell);
 static int GetSpellType(int spell);
 void Target_Routine_For_Fortify(BattleUnit* unit);
+void GaidenZeroOurSpellVariables(void);
 
 long long Return_Range_Bitfield(Unit* unit, int slot, int(*usability)(Unit* unit, int item));
 long long GetUnitRangeMaskForSpells(Unit* unit, int(*usability)(Unit* unit, int item));

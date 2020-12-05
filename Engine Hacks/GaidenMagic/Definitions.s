@@ -66,3 +66,7 @@ SET_FUNC GaidenSetupBattleUnitForStaffHack, (0x0802CB24+1)
 SET_FUNC GaidenExecStandardHealHack, (0x0802EBB4+1)
 
 SET_FUNC GaidenExecFortifyHack, (0x0802F184+1)
+
+SET_FUNC GaidenStaffInventoryHack, (0x0802CC80+1)
+
+SET_FUNC GaidenTargetSelectionBPressHack, (0x08022780+1)

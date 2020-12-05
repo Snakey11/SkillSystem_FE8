@@ -28,6 +28,9 @@
 // If uncommented, Gaiden-style magic 2.0 will be implemented.
 #define GAIDEN_MAGIC
 
+// If uncommented, unlock staves will work on chests.
+#define UNLOCK_WORKS_ON_CHESTS
+
 // =================================
 // = SKILL BEHAVIOUR CONFIGURATION =
 // =================================

@@ -188,6 +188,10 @@ POP
   ALIGN 4
   #include "GaidenMagic/GaidenMagic.event"
 
+  //Unlock on chests - Credit Gamma for the code on this one
+  ALIGN 4
+  #include "UnlockChest/UnlockChest.event"
+
   ALIGN 4
   #include "SkillSystem/SkillSystemInstaller.event"
 

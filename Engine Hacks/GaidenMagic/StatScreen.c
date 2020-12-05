@@ -41,12 +41,23 @@ void GaidenRTextGetter(RTextProc* proc)
 void GaidenRTextLooper(RTextProc* proc)
 {
 	int index = *(proc->rTextData+0x12);
-	// We can move to this index if we've learned this spell.
-	if ( !DoesUnitKnowSpell(gpStatScreenUnit,SpellsGetter(gpStatScreenUnit,-1)[index]) )
+	if ( proc->direction == DIRECTION_RIGHT )
 	{
-		if ( proc->direction == 0 ) { RTextDown(proc); }
-		else if ( proc->direction == 0x10 ) { RTextUp(proc); }
-		else if ( proc->direction == 0x40 ) { RTextRight(proc); }
-		else if ( proc->direction == 0x80 ) { RTextLeft(proc); }
+		// If we're coming from the right, go up. We need to call RTextUp until we can use a spell there.
+		while ( index >= 0 && !DoesUnitKnowSpell(gpStatScreenUnit,SpellsGetter(gpStatScreenUnit,-1)[index]) )
+		{
+			RTextUp(proc);
+			index -= 2;
+		}
+	}
+	else if ( proc->direction == DIRECTION_DOWN )
+	{
+		// If we're coming from above, go left.
+		if ( !DoesUnitKnowSpell(gpStatScreenUnit,SpellsGetter(gpStatScreenUnit,-1)[index]) )
+		{
+			RTextLeft(proc);
+			// We're in the right column, and there isn't a spell in the left column one row below we can't jump to, go left again.
+			if ( index % 2 && !DoesUnitKnowSpell(gpStatScreenUnit,SpellsGetter(gpStatScreenUnit,-1)[index-1]) ) { RTextLeft(proc); }
+		}
 	}
 }

@@ -7,14 +7,6 @@
     .short 0xF800
 .endm
 
-.equ GetUnitEquippedWeaponSlot, 0x08016B58
-.equ gActionData, 0x0203A958
-.equ GetUnit, 0x08019431
-.equ GetItemIndex, 0x080174ED
-.equ DefenseStruct, 0x0203A56C
-.equ UsingSpellMenu, 0x0203F082
-.equ SelectedSpell, 0x0203F080
-
 .global SetUpBattleWeaponDataHack
 .type SetUpBattleWeaponDataHack, %function
 SetUpBattleWeaponDataHack: @ Autohook to 0x0802A730. Creates case 9 for the switch (using a Gaiden Spell).
@@ -69,7 +61,7 @@ mov r0, #0x09
 strb r0, [ r4 ]
 @ Now we need to think for a bit. If we're attacking, then we can trust SelectedSpell to contain the spell the player chose.
 	@ If we're defending, we just need to select the first Gaiden Spell.
-ldr r0, =DefenseStruct
+ldr r0, =gBattleTarget
 cmp r0, r5
 beq SpellMenuDefending
 	ldr r1, =SelectedSpell
@@ -95,29 +87,6 @@ strb r1, [ r0 ] @ Set CanCounter.
 mov r8, r4
 mov r4, r2
 ldr r1, =#0x802A84B
-bx r1
-
-.ltorg
-.align
-
-.global ZeroOutSpellAtBatteEnd
-.type ZeroOutSpellAtBatteEnd, %function
-ZeroOutSpellAtBatteEnd: @ Autohook to 0x0802C1EC.
-push { r4 - r6, lr }
-mov r4, r0
-mov r5, r1
-ldr r2, =SelectedSpell
-mov r1, #0x0
-str r1, [ r2 ]
-ldrb r0, [ r5, #0x8 ]
-strb r0, [ r4, #0x8 ]
-ldrb r0, [ r5, #0x9 ]
-strb r0, [ r4, #0x9 ]
-ldrb r0, [ r5, #0x13 ]
-strb r0, [ r4, #0x13 ]
-ldr r0, [ r5, #0xC ]
-str r0, [ r4, #0xC ]
-ldr r1, =0x0802C203
 bx r1
 
 .ltorg
@@ -200,11 +169,11 @@ bne SetupBattleUnitForStaffUsingSpell
 	SetupBattleUnitForStaffSkip:
 	b EndSetupBattleUnitForStaffFix
 SetupBattleUnitForStaffUsingSpell:
-ldr r6, =SelectedSpell
-ldrb r6, [ r6 ]
-mov r0, #0xFF
-lsl r0, r0, #8
-orr r6, r0, r6
+	ldr r6, =SelectedSpell
+	ldrb r6, [ r6 ]
+	mov r0, #0xFF
+	lsl r0, r0, #8
+	orr r6, r0, r6
 EndSetupBattleUnitForStaffFix:
 ldr r0, =#0x0802CB39
 bx r0
@@ -261,3 +230,53 @@ ldrb r1, [ r1 ]
 EndExecFortify:
 ldr r0, =#0x0802F195
 bx r0
+
+.ltorg
+.align
+
+.global GaidenStaffInventoryHack
+.type GaidenStaffInventoryHack, %function
+GaidenStaffInventoryHack: @ Autohook to 0x0802CC80. Prevent staff use updating inventory.
+ldr r0, =UsingSpellMenu
+ldrb r0, [ r0 ]
+cmp r0, #0x00
+bne SkipStaffInventory
+	@ Vanilla behavior.
+	mov r5, r4
+	add r5, r5, #0x48
+	ldrh r0, [ r5 ]
+	blh GetItemAttributes, r1
+	mov r1, #0x04
+	and r1, r0, r1
+	cmp r1, #0x00
+	beq StaffInventoryDontDecItem
+		mov r1, r4
+		add r1, r1, #0x7D
+		mov r0, #0x01
+		strb r0, [ r1 ]
+		ldrh r0, [ r5 ]
+	StaffInventoryDontDecItem:
+	ldr r1, =#0x0802CC9D
+	bx r1
+SkipStaffInventory:
+ldr r0, =#0x0802CCB3
+bx r0
+
+.ltorg
+.align
+
+.global GaidenTargetSelectionBPressHack
+.type GaidenTargetSelectionBPressHack, %function
+GaidenTargetSelectionBPressHack: @ Autohook to 0x08022780. Unset spell variables when B pressing on target selection.
+ldsb r1, [ r2, r1 ]
+ldrb r2, [ r2, #0x11 ]
+lsl r2, r2, #0x18
+asr r2, r2, #0x18
+blh EnsureCameraOntoPosition, r3
+bl GaidenZeroOutSpellVariables
+mov r0, #0x19
+pop { r1 }
+bx r1
+
+.ltorg
+.align

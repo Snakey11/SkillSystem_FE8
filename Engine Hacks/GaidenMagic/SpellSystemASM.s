@@ -7,6 +7,10 @@
     .short 0xF800
 .endm
 
+.equ InitBattleUnitFromUnit, 0x0802A584
+.equ ClearRounds, 0x0802AE90
+.equ gpCurrentRound, 0x0203A608
+
 .global SetUpBattleWeaponDataHack
 .type SetUpBattleWeaponDataHack, %function
 SetUpBattleWeaponDataHack: @ Autohook to 0x0802A730. Creates case 9 for the switch (using a Gaiden Spell).
@@ -153,8 +157,16 @@ bx r0
 .type GaidenSetupBattleUnitForStaffHack, %function
 GaidenSetupBattleUnitForStaffHack: @ Autohook to 0x0802CB24.
 push { r4 - r7, lr } @ r0 = unit, r1 = gActionData+0x12 = inventory slot.
-mov r2, r0
 mov r7, r1
+mov r1, r0
+ldr r2, =gBattleStats
+mov r4, #0x00
+mov r0, #0x00
+strh r0, [ r2 ]
+ldr r5, =gBattleActor
+mov r0, r5
+blh InitBattleUnitFromUnit, r3 @ This call happens AFTER setting r6 normally, but this should be okay.
+blh ClearRounds, r0 @ Clear rounds at the start of this routine instead of at the end.
 ldr r1, =UsingSpellMenu
 ldrb r1, [ r1 ]
 cmp r1, #0x00
@@ -164,9 +176,8 @@ bne SetupBattleUnitForStaffUsingSpell
 	add r0, r0, r1
 	ldrh r6, [ r0 ]
 	cmp r7, #0x00
-	bge SetupBattleUnitForStaffSkip
+	bge EndSetupBattleUnitForStaffFix
 		mov r6, #0x00
-	SetupBattleUnitForStaffSkip:
 	b EndSetupBattleUnitForStaffFix
 SetupBattleUnitForStaffUsingSpell:
 	ldr r6, =SelectedSpell
@@ -174,8 +185,33 @@ SetupBattleUnitForStaffUsingSpell:
 	mov r0, #0xFF
 	lsl r0, r0, #8
 	orr r6, r0, r6
+	@ Now let's try to set the HP cost. Rounds data doesn't work quite the same for staves...
+	@ r5 has the battle unit already.
+	mov r0, r6
+	bl GetSpellCost @ Thanks, Gamma for the logic here.
+	ldrb r1, [ r5, #0x13 ] @ Current HP.
+	sub r1, r1, r0
+	strb r1, [ r5, #0x13 ] @ Store the reduced HP.
+	@ HP cost should work for ALL staves now, but we can set HP drain and such in rounds data.
+	@ If the staff uses rounds data, then it'll work. If not, no harm done. There's no HP bar animation needed anyway.
+	neg r0, r0 @ Make the spell cost negative.
+	ldr r1, =gpCurrentRound
+	ldr r1, [ r1 ]
+	mov r2, #0x05 @ AAAAA this isn't aligned. TODO FIX
+	strh r0, [ r1, r2 ] @ HP change.
+	ldr r2, [ r1 ] @ I think this is an "attributes" bitfield.
+	lsl r3, r2, #0x0D
+	lsr r3, r3, #0x0D
+	mov r0, #0x13
+	lsl r0, r0, #0x08
+	orr r3, r0, r3
+	ldr r0, =#0xFFF80000
+	and r0, r0, r2
+	orr r0, r0, r3
+	str r0, [ r1 ]
+	
 EndSetupBattleUnitForStaffFix:
-ldr r0, =#0x0802CB39
+ldr r0, =#0x0802CB4B
 bx r0
 
 .ltorg
@@ -277,6 +313,38 @@ bl GaidenZeroOutSpellVariables
 mov r0, #0x19
 pop { r1 }
 bx r1
+
+.ltorg
+.align
+
+.global GaidenMenuSpellCostHack
+.type GaidenMenuSpellCostHack, %function
+GaidenMenuSpellCostHack: @ Autohook to 0x080168A0. Replace the parameters to DrawUiNumberOrDoubleDashes to show spell cost instead of durability in the spell menu.
+ldr r1, =UsingSpellMenu
+ldrb r1, [ r1 ]
+cmp r1, #0x00
+bne SpellMenuCostUsingSpell
+	@ Vanilla behavior.
+	ldr r0, [ r4, #0x08 ]
+	mov r1, #0x08
+	and r0, r0, r1
+	asr r2, r6, #0x08
+	cmp r0, #0x00
+	beq EndSpellMenuCost
+		mov r2, #0xFF @ I think this is read to show --.
+SpellMenuCostUsingSpell:
+	@ We're using a Gaiden spell. Place the spell cost in r2.
+	@ r3 is NOT free here.
+	mov r5, r3 @ r5 is free for the moment.
+	lsl r0, r6, #0x18 @ The spell halfword is in r6.
+	lsr r0, r0, #0x18 @ Clear durability.
+	bl GetSpellCost
+	mov r2, r0
+	mov r3, r5
+EndSpellMenuCost:
+mov r5, #0x02
+ldr r0, =#0x080168B1
+bx r0
 
 .ltorg
 .align

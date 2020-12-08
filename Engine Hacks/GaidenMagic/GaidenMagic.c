@@ -13,7 +13,7 @@ enum
 	BLACK_MAGIC = 1,
 	WHITE_MAGIC = 2,
 	
-	DIRECTION_UP = 0x00,
+	DIRECTION_UP = 0x00, // For RText.
 	DIRECTION_RIGHT = 0x10,
 	DIRECTION_LEFT = 0x20,
 	DIRECTION_DOWN = 0x80
@@ -68,6 +68,7 @@ extern Unit* gpStatScreenUnit; // 0x02003BC08.
 extern u16 gGaidenMagicHPCostText;
 extern u16 gGaidenMagicUMErrorText;
 extern u16 gGaidenMagicSpellMenuErrorText;
+extern u8 GaidenSpellCostTable[];
 
 extern int(*gCan_Attack_Target)(int item, int range, Unit* unit); // These exist in the FE8-Item Range Fix hack.
 extern long long(*gGet_Item_Range)(Unit* unit, int item);
@@ -117,14 +118,15 @@ int NewGetUnitEquippedWeaponSlot(Unit* unit);
 u32 NewGetUnitUseFlags(Unit* unit);
 void Proc_GaidenMagicHPCost(BattleUnit* attacker, BattleUnit* defender, NewBattleHit* buffer, BattleStats* battleData);
 int InitGaidenSpellLearnPopup(void);
-static int HasSufficientHP(Unit* unit, int spell);
-static int CanCastSpellNow(Unit* unit, int spell);
-static int CanCastSpell(Unit* unit, int spell);
-static int CanUseAttackSpellsNow(Unit* unit, int type);
-static int GetNthUsableSpell(Unit* unit, int n, int type);
+int HasSufficientHP(Unit* unit, int spell);
+int CanCastSpellNow(Unit* unit, int spell);
+int CanCastSpell(Unit* unit, int spell);
+int CanUseAttackSpellsNow(Unit* unit, int type);
+int GetNthUsableSpell(Unit* unit, int n, int type);
 static int GetVanillaEquipped(Unit* unit);
-static int DoesUnitKnowSpell(Unit* unit, u8 spell);
-static int GetSpellType(int spell);
+int DoesUnitKnowSpell(Unit* unit, u8 spell);
+int GetSpellType(int spell);
+int GetSpellCost(int spell);
 void Target_Routine_For_Fortify(BattleUnit* unit);
 void GaidenZeroOurSpellVariables(void);
 

@@ -1020,3 +1020,18 @@ blh #0x804E368+1, reg=r4 @MakeNewUiWindowTsa
 add sp, #4
 pop {r4}
 .endm
+
+.macro draw_gaiden_spells_at, tile_x, tile_y, gaidenStatScreenRoutine
+@ This will do nothing if Gaiden Magic is not installed.
+ldr r0, \gaidenStatScreenRoutine
+cmp r0, #0x00
+beq SkipGaidenDraw
+	@ Gaiden magic is installed. Call the function for stat screen drawing.
+	mov lr, r0
+	mov r0, #\tile_x @ X coordinate.
+	mov r1, #\tile_y @ Y coordinate.
+	mov r2, r7  @ Current TextHandle.
+	.short 0xF800
+	mov r0, r7 @ Next "blank" TextHandle.
+SkipGaidenDraw:
+.endm

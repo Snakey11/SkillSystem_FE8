@@ -13,7 +13,7 @@ int SpellUsability(const struct MenuCommandDefinition* menuEntry, int index, int
 int SpellDrawingRoutine(MenuProc* menu, MenuCommandProc* menuCommand)
 {
 	// extern void DrawItemMenuCommand(TextHandle* textHandle, u16 item, int canUse, u16* buffer);
-	int spell = SpellsGetter(gActiveUnit,UsingSpellMenu)[GetNthUsableSpell(gActiveUnit,menuCommand->commandDefinitionIndex,UsingSpellMenu)]|0xFF00;
+	int spell = SpellsGetter(gActiveUnit,UsingSpellMenu)[GetNthUsableSpell(gActiveUnit,menuCommand->commandDefinitionIndex,UsingSpellMenu)];
 	// At this point, the spell should be guranteed to exist. Let's check to see if we have the HP to cast the spell (and the weapon rank).
 	int canUse = HasSufficientHP(gActiveUnit,spell);
 	DrawItemMenuCommand(&menuCommand->text,spell,canUse,&gBg0MapBuffer[menuCommand->yDrawTile * 32 + menuCommand->xDrawTile]);
@@ -88,7 +88,7 @@ int SpellOnHover(MenuProc* proc)
 		
 		int CostColor = 2;
 		if ( !HasSufficientHP(gActiveUnit,spell) ) { CostColor = 1; }
-		Text_InsertNumberOr2Dashes(&menuItemPanel->textHandles[0],0x54,CostColor,GetItemAwardedExp(spell));
+		Text_InsertNumberOr2Dashes(&menuItemPanel->textHandles[0],0x54,CostColor,GetSpellCost(spell));
 		Text_InsertNumberOr2Dashes(&menuItemPanel->textHandles[1],0x24,2,gBattleActor.battleAttack);
 		Text_InsertNumberOr2Dashes(&menuItemPanel->textHandles[2],0x24,2,gBattleActor.battleHitRate);
 		Text_InsertNumberOr2Dashes(&menuItemPanel->textHandles[1],0x54,2,gBattleActor.battleCritRate);
@@ -105,6 +105,10 @@ int SpellOnHover(MenuProc* proc)
 			desc = Text_GetStringNextLine(desc);
 			j++;
 		} while ( *desc );
+		gBattleActor.battleAttack = gBattleTarget.battleAttack; // ??? this is something vanilla does???
+		gBattleActor.battleHitRate = gBattleTarget.battleHitRate; // ??? this fixes the green/red arrows from showing on staves???
+		gBattleActor.battleCritRate = gBattleTarget.battleCritRate;
+		gBattleActor.battleAvoidRate = gBattleTarget.battleAvoidRate;
 	}
 	for ( int i = 0 ; i < 3 ; i++ ) { Text_Display(&menuItemPanel->textHandles[i],&gBG0MapBuffer[y+1+2*i][x+1]); }
 	

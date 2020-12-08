@@ -138,11 +138,10 @@ u32 NewGetUnitUseFlags(Unit* unit) // Autohook to 0x08018B28.
 void Proc_GaidenMagicHPCost(BattleUnit* attacker, BattleUnit* defender, NewBattleHit* buffer, BattleStats* battleData)
 {
 	// First, let's check if the attacker is using a (gaiden) spell.
-	int type = GetItemType(attacker->weapon);
-	if ( type >= 5 && type <= 8 )
+	if ( UsingSpellMenu )
 	{
 		// They're using a spell. Let's get the HP cost.
-		int cost = GetItemAwardedExp(attacker->weapon);
+		int cost = GetSpellCost(attacker->weapon);
 		
 		// Let's set the HP depletion bit.
 		buffer->attributes |= 0x100; // "HP drain" bit.
@@ -170,15 +169,15 @@ int InitGaidenSpellLearnPopup(void) // Responsible for returning a boolean for w
 	} else { return 0; }
 }
 
-static int HasSufficientHP(Unit* unit, int spell)
+int HasSufficientHP(Unit* unit, int spell)
 {
 	// WeaponEXP granted in item data is also the HP cost of the spell.
-	return unit->curHP > GetItemData(spell)->weaponExp;
+	return unit->curHP > GetSpellCost(spell);
 }
 
 // This function is going to check if we should be able to use this spell NOW. If this is an attack spell, are we in range, etc.
 // This does NOT check for HP cost.
-static int CanCastSpellNow(Unit* unit, int spell)
+int CanCastSpellNow(Unit* unit, int spell)
 {
 	// This function should do a bit of miscellaneous conditional stuff.
 	int type = GetItemData(spell)->weaponType;
@@ -195,7 +194,7 @@ static int CanCastSpellNow(Unit* unit, int spell)
 	}
 }
 
-static int CanCastSpell(Unit* unit, int spell) // Same as CanCastSpellNow but calls the functions... without the "Now."
+int CanCastSpell(Unit* unit, int spell) // Same as CanCastSpellNow but calls the functions... without the "Now."
 {
 	int type = GetItemData(spell)->weaponType;
 	if ( type != ITYPE_STAFF )
@@ -211,7 +210,7 @@ static int CanCastSpell(Unit* unit, int spell) // Same as CanCastSpellNow but ca
 	}
 }
 
-static int CanUseAttackSpellsNow(Unit* unit, int type) // Can the unit use a Gaiden spell now that's an attack?
+int CanUseAttackSpellsNow(Unit* unit, int type) // Can the unit use a Gaiden spell now that's an attack?
 {
 	u8* spells = SpellsGetter(unit,type);
 	for ( int i = 0 ; spells[i] ; i++ )
@@ -226,7 +225,7 @@ static int CanUseAttackSpellsNow(Unit* unit, int type) // Can the unit use a Gai
 
 // This should loop through spells that are usable NOW. Basically, a spell should be considered usable if it appears in the spell menu.
 // Don't check for HP because those are greyed out with error R-text.
-static int GetNthUsableSpell(Unit* unit, int n, int type)
+int GetNthUsableSpell(Unit* unit, int n, int type)
 {
 	u8* spells = SpellsGetter(unit,type);
 	int k = -1;
@@ -250,7 +249,7 @@ static int GetVanillaEquipped(Unit* unit)
 	return 0;
 }
 
-static int DoesUnitKnowSpell(Unit* unit, u8 spell)
+int DoesUnitKnowSpell(Unit* unit, u8 spell)
 {
 	// Is this spell in this unit's spell list?
 	u8* spells = SpellsGetter(unit,-1);
@@ -261,12 +260,17 @@ static int DoesUnitKnowSpell(Unit* unit, u8 spell)
 	return 0;
 }
 
-static int GetSpellType(int spell)
+int GetSpellType(int spell)
 {
 	int wType = (GetItemData(spell))->weaponType;
 	if ( wType == ITYPE_ANIMA || wType == ITYPE_DARK ) { return BLACK_MAGIC; }
 	else if ( wType == ITYPE_STAFF || wType == ITYPE_LIGHT) { return WHITE_MAGIC; }
 	else { return -1; }
+}
+
+int GetSpellCost(int spell)
+{
+	return GaidenSpellCostTable[GetItemIndex(spell)];
 }
 
 void Target_Routine_For_Fortify(BattleUnit* unit)

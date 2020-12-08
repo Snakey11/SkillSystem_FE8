@@ -11,11 +11,13 @@ BYTE 9 Barrier*/
 BYTE 6 Physic*/
 //BYTE 7 Fortify
 //BYTE 4 Restore
-//BYTE 9 Sleep
+BYTE 8 Sleep
 //BYTE 10 Berserk
 //BYTE 5 0x56 // Torch
 //BYTE 6 Hammerne
-//BYTE 9 Elfire
+BYTE 9 Elfire
+BYTE 10 Bolting
+BYTE 11 Lightning
 //BYTE 8 Unlock
 //BYTE 9 Sleep
 //BYTE 8 Warp

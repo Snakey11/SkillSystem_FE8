@@ -10,6 +10,10 @@
 .equ InitBattleUnitFromUnit, 0x0802A584
 .equ ClearRounds, 0x0802AE90
 .equ gpCurrentRound, 0x0203A608
+.equ StartEFXHpBar, 0x8052304
+.equ StartEFXHpBarLive, 0x08052a0c
+.equ StartEFXStatusChange, 0x08055518
+.equ LoadFlashBG, 0x08053f10
 
 .global SetUpBattleWeaponDataHack
 .type SetUpBattleWeaponDataHack, %function
@@ -185,20 +189,24 @@ SetupBattleUnitForStaffUsingSpell:
 	mov r0, #0xFF
 	lsl r0, r0, #8
 	orr r6, r0, r6
+	mov r0, #0x48
+	strh r6, [ r5, r0 ] @ Store the selected spell halfword.
 	@ Now let's try to set the HP cost. Rounds data doesn't work quite the same for staves...
 	@ r5 has the battle unit already.
 	mov r0, r6
-	bl GetSpellCost @ Thanks, Gamma for the logic here.
+	bl GetSpellCost
+	@ Thanks Gamma for the logic here.
 	ldrb r1, [ r5, #0x13 ] @ Current HP.
 	sub r1, r1, r0
 	strb r1, [ r5, #0x13 ] @ Store the reduced HP.
 	@ HP cost should work for ALL staves now, but we can set HP drain and such in rounds data.
 	@ If the staff uses rounds data, then it'll work. If not, no harm done. There's no HP bar animation needed anyway.
-	neg r0, r0 @ Make the spell cost negative.
 	ldr r1, =gpCurrentRound
 	ldr r1, [ r1 ]
-	mov r2, #0x05 @ AAAAA this isn't aligned. TODO FIX
-	strh r0, [ r1, r2 ] @ HP change.
+	mov r2, #0x05
+	ldsb r3, [ r1, r2 ] @ Damage.
+	sub r3, r3, r0
+	strb r3, [ r1, r2 ] @ HP change.
 	ldr r2, [ r1 ] @ I think this is an "attributes" bitfield.
 	lsl r3, r2, #0x0D
 	lsr r3, r3, #0x0D
@@ -209,7 +217,10 @@ SetupBattleUnitForStaffUsingSpell:
 	and r0, r0, r2
 	orr r0, r0, r3
 	str r0, [ r1 ]
-	
+	/*mov r0, r5 @ Battle unit.
+	ldr r1, =gpCurrentRound
+	ldr r1, [ r1 ] @ Current round.
+	bl SetRoundForSpell*/
 EndSetupBattleUnitForStaffFix:
 ldr r0, =#0x0802CB4B
 bx r0
@@ -317,6 +328,21 @@ bx r1
 .ltorg
 .align
 
+.global GaidenTargetSelectionCamWaitBPressHack
+.type GaidenTargetSelectionCamWaitBPressHack, %function
+GaidenTargetSelectionCamWaitBPressHack: @ Autohook to 0x08022844. Same as before but with a different function.
+blh Text_ResetTileAllocation, r0
+ldr r0, =gProc_GoBackToUnitMenu
+mov r1, #0x03
+blh ProcStart, r2
+bl GaidenZeroOutSpellVariables
+mov r0, #0x19
+pop { r1 }
+bx r1
+
+.ltorg
+.align
+
 .global GaidenMenuSpellCostHack
 .type GaidenMenuSpellCostHack, %function
 GaidenMenuSpellCostHack: @ Autohook to 0x080168A0. Replace the parameters to DrawUiNumberOrDoubleDashes to show spell cost instead of durability in the spell menu.
@@ -332,6 +358,7 @@ bne SpellMenuCostUsingSpell
 	cmp r0, #0x00
 	beq EndSpellMenuCost
 		mov r2, #0xFF @ I think this is read to show --.
+	b EndSpellMenuCost
 SpellMenuCostUsingSpell:
 	@ We're using a Gaiden spell. Place the spell cost in r2.
 	@ r3 is NOT free here.
@@ -348,3 +375,41 @@ bx r0
 
 .ltorg
 .align
+
+.global SleepFix
+.type SleepFix, %function
+SleepFix: @ jumpToHacked at $62768. Credit Gamma.
+blh StartEFXHpBarLive, r3
+@blh StartEFXHpBar, r3
+mov r0, r5
+blh StartEFXStatusChange, r3
+ldrb r0, [ r4, #0x0 ]
+cmp r0, #0x0
+bne NotZero
+
+IsZero:
+ldr r0, =0x08062773
+bx r0
+
+NotZero:
+ldr r0, =0x080627A7
+bx r0
+
+.align
+.ltorg
+
+.global SilenceFix
+.type SilenceFix, %function
+SilenceFix: @ jumpToHacked at $624D4. Credit Gamma.
+blh StartEFXHpBarLive, r3
+mov r0, r5
+blh StartEFXStatusChange, r3
+ldr r0, [ r4, #0x5C ]
+mov r1, #0xA
+blh LoadFlashBG, r3
+
+ldr r0, =0x080624E1
+bx r0
+
+.align
+.ltorg

@@ -140,15 +140,19 @@ void Proc_GaidenMagicHPCost(BattleUnit* attacker, BattleUnit* defender, NewBattl
 	// First, let's check if the attacker is using a (gaiden) spell.
 	if ( UsingSpellMenu )
 	{
-		// They're using a spell. Let's get the HP cost.
-		int cost = GetSpellCost(attacker->weapon);
-		
-		// Let's set the HP depletion bit.
-		buffer->attributes |= 0x100; // "HP drain" bit.
-		// Now let's subtract the cost from their HP. The check before gurantees they have enough HP to cast right now.
-		attacker->unit.curHP -= cost;
-		buffer->damage -= cost;
+		SetRoundForSpell(attacker,buffer);
 	}
+}
+
+void SetRoundForSpell(BattleUnit* unit, NewBattleHit* buffer)
+{
+	int cost = GetSpellCost(unit->weapon);
+	
+	// Let's set the HP depletion bit.
+	buffer->attributes |= 0x100; // "HP drain" bit.
+	// Now let's subtract the cost from their HP. The check before gurantees they have enough HP to cast right now.
+	unit->unit.curHP -= cost;
+	buffer->damage -= cost;
 }
 
 int InitGaidenSpellLearnPopup(void) // Responsible for returning a boolean for whether we should show a "spell learned" popup after battle and for setting it up.

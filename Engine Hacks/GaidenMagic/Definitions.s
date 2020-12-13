@@ -72,3 +72,5 @@ SET_FUNC GaidenStaffInventoryHack, (0x0802CC80+1)
 SET_FUNC GaidenTargetSelectionBPressHack, (0x08022780+1)
 
 SET_FUNC GaidenMenuSpellCostHack, (0x080168A0+1)
+
+SET_FUNC GaidenTargetSelectionCamWaitBPressHack, (0x08022844+1)

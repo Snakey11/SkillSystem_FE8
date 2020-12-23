@@ -99,8 +99,10 @@ int SpellOnHover(MenuProc* proc)
 	{
 		const char* desc = GetStringFromIndex(GetItemUseDescId(spell));
 		int j = 0;
+		desc--;
 		do // This loop handles writing multiple lines of description text. Why isn't there a function to handle this...? IS moment...
 		{
+			desc++;
 			Text_InsertString(&menuItemPanel->textHandles[j],0,0,desc);
 			desc = Text_GetStringNextLine(desc);
 			j++;

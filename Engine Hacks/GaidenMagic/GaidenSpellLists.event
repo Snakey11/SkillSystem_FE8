@@ -1,26 +1,24 @@
 
 ALIGN 4
-EirikaSpellList:
-/*BYTE 5 Heal
-BYTE 6 Mend
-BYTE 7 Rescue
-BYTE 8 Warp
-BYTE 9 Barrier*/
-//BYTE 10 Physic
-/*BYTE 5 Silence
-BYTE 6 Physic*/
-//BYTE 7 Fortify
-//BYTE 4 Restore
-BYTE 8 Sleep
-//BYTE 10 Berserk
-//BYTE 5 0x56 // Torch
-//BYTE 6 Hammerne
-BYTE 9 Elfire
-BYTE 10 Bolting
-BYTE 11 Lightning
-//BYTE 8 Unlock
-//BYTE 9 Sleep
-//BYTE 8 Warp
+EirikaSpellList: // Testing these staves for correct vanilla and Gaiden behavior.
+/*BYTE 1 Heal
+BYTE 2 Mend
+BYTE 3 Recover
+BYTE 4 Physic*/ // GOOD.
+
+/*BYTE 1 Fortify
+BYTE 2 Warp
+BYTE 3 Rescue
+BYTE 4 Hammerne*/ // GOOD except Hammerne doesn't show the HP cost animation.
+
+/*BYTE 1 Silence
+BYTE 2 Sleep
+BYTE 3 Berserk
+BYTE 4 Restore*/ // GOOD except same animation issue.
+
+BYTE 1 Unlock
+BYTE 2 0x56 // GOOD
+BYTE 3 Barrier // GOOD except same animation issue.
 BYTE 0 0
 
 /* STAFF NOTES

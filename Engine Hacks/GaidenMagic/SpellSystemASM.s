@@ -137,7 +137,7 @@ bx r1
 GaidenPreActionHack: @ Autohook to 0x0801D1D0.
 ldr r1, =UsingSpellMenu
 ldrb r1, [ r1 ]
-cmp r0, #0x00
+cmp r1, #0x00
 bne PreActionFixUsingSpell
 	ldrb r1, [ r4, #0x12 ]
 	lsl r1, r1, #0x01
@@ -160,7 +160,7 @@ bx r0
 .global GaidenSetupBattleUnitForStaffHack
 .type GaidenSetupBattleUnitForStaffHack, %function
 GaidenSetupBattleUnitForStaffHack: @ Autohook to 0x0802CB24.
-push { r4 - r7, lr } @ r0 = unit, r1 = gActionData+0x12 = inventory slot.
+push { r4 - r7, lr } @ r0 = unit, r1 = [gActionData+0x12] = inventory slot.
 mov r7, r1
 mov r1, r0
 ldr r2, =gBattleStats
@@ -171,6 +171,7 @@ ldr r5, =gBattleActor
 mov r0, r5
 blh InitBattleUnitFromUnit, r3 @ This call happens AFTER setting r6 normally, but this should be okay.
 blh ClearRounds, r0 @ Clear rounds at the start of this routine instead of at the end.
+mov r0, r5
 ldr r1, =UsingSpellMenu
 ldrb r1, [ r1 ]
 cmp r1, #0x00
@@ -193,7 +194,7 @@ SetupBattleUnitForStaffUsingSpell:
 	strh r6, [ r5, r0 ] @ Store the selected spell halfword.
 	@ Now let's try to set the HP cost. Rounds data doesn't work quite the same for staves...
 	@ r5 has the battle unit already.
-	mov r0, r6
+	/*mov r0, r6
 	bl GetSpellCost
 	@ Thanks Gamma for the logic here.
 	ldrb r1, [ r5, #0x13 ] @ Current HP.
@@ -216,11 +217,11 @@ SetupBattleUnitForStaffUsingSpell:
 	ldr r0, =#0xFFF80000
 	and r0, r0, r2
 	orr r0, r0, r3
-	str r0, [ r1 ]
-	/*mov r0, r5 @ Battle unit.
+	str r0, [ r1 ]*/
+	mov r0, r5 @ Battle unit.
 	ldr r1, =gpCurrentRound
 	ldr r1, [ r1 ] @ Current round.
-	bl SetRoundForSpell*/
+	bl SetRoundForSpell
 EndSetupBattleUnitForStaffFix:
 ldr r0, =#0x0802CB4B
 bx r0
@@ -376,11 +377,12 @@ bx r0
 .ltorg
 .align
 
+@ Note from Snek: The following two functions are intended to help support HP cost animations in battle with status staves, hammerne, and restore,
+@	but neither I nor Gamma could get this to work. :(
 .global SleepFix
 .type SleepFix, %function
-SleepFix: @ jumpToHacked at $62768. Credit Gamma.
+SleepFix: @ jumpToHacked at 0x08062768. Credit Gamma.
 blh StartEFXHpBarLive, r3
-@blh StartEFXHpBar, r3
 mov r0, r5
 blh StartEFXStatusChange, r3
 ldrb r0, [ r4, #0x0 ]
@@ -400,7 +402,7 @@ bx r0
 
 .global SilenceFix
 .type SilenceFix, %function
-SilenceFix: @ jumpToHacked at $624D4. Credit Gamma.
+SilenceFix: @ jumpToHacked at 0x080624D4. Credit Gamma.
 blh StartEFXHpBarLive, r3
 mov r0, r5
 blh StartEFXStatusChange, r3

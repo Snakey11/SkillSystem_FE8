@@ -8,9 +8,6 @@ HP Bars[.][X]
 # 0x00B2
 Set health bar display[X]
 
-# 0x160 PrologueChName
-Boss Rush[X]
-
 #0x3A LearnedSkillText
 #first text ID in the free block
 Learned  [X]
@@ -90,6 +87,27 @@ This unit must escape last.[X]
 
 ## Mov_Text_ID
 Mov[X]
+
+## UM_GaidenBlackMagic
+ B. Magic[X]
+
+## UM_GaidenWhiteMagic
+ W. Magic[X]
+
+## UM_GaidenMagicDesc
+Spend HP to cast spells[NL]
+this unit has learned.[X]
+
+## GaidenMagicUMErrorText
+You don't have enough HP[NL]
+to cast any spells.[X]
+
+## GaidenMagicSpellMenuErrorText
+You don't have enough HP[NL]
+to cast this spell.[X]
+
+## GaidenMagicHPCostText
+Cost[X]
 
 ## PrepScreenUseSkillScroll
  Skill learned[X]
